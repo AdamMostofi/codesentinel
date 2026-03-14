@@ -8,6 +8,9 @@ from app.services.scanner import SecurityScanner
 from app.core.config import settings
 import uuid
 import traceback
+import logging
+
+logger = logging.getLogger(__name__)
 
 Base.metadata.create_all(bind=engine)
 
@@ -21,16 +24,20 @@ async def create_scan(file: UploadFile = File(...), db: Session = Depends(get_db
     Upload a .zip file to start a new security scan.
     """
     if not file.filename or not file.filename.endswith(".zip"):
+        logger.warning(f"Invalid file type uploaded: {file.filename}")
         raise HTTPException(status_code=400, detail="Only .zip files are allowed")
 
     scan_id = str(uuid.uuid4())
+    logger.info(f"Starting scan {scan_id} for file: {file.filename}")
 
     content = await file.read()
 
     if len(content) > settings.MAX_UPLOAD_SIZE:
+        logger.warning(f"File too large: {file.filename} ({len(content)} bytes)")
         raise HTTPException(status_code=400, detail="File size must be less than 50MB")
 
     try:
+        logger.info(f"Processing file upload: {file.filename} ({len(content)} bytes)")
         result = file_handler.handle_upload(content, file.filename, scan_id)
 
         scan = Scan(
@@ -68,6 +75,10 @@ async def create_scan(file: UploadFile = File(...), db: Session = Depends(get_db
             scan.completed_at = datetime.utcnow()
             db.commit()
 
+            logger.info(
+                f"Scan {scan_id} completed - Risk score: {scan_results['risk_score']}, Vulnerabilities: {scan_results['total']}"
+            )
+
             return {
                 "id": scan_id,
                 "project_name": file.filename,
@@ -83,14 +94,17 @@ async def create_scan(file: UploadFile = File(...), db: Session = Depends(get_db
             scan.error_message = str(scan_error)
             scan.completed_at = datetime.utcnow()
             db.commit()
+            logger.error(f"Scan {scan_id} failed: {str(scan_error)}")
             raise HTTPException(
                 status_code=500, detail=f"Scan failed: {str(scan_error)}"
             )
 
     except ValueError as e:
+        logger.warning(f"Invalid value error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         file_handler.cleanup(scan_id)
+        logger.error(f"Error processing scan {scan_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error processing file: {str(e)}")
 
 
@@ -99,7 +113,9 @@ async def get_scans(db: Session = Depends(get_db)):
     """
     Get list of all scans.
     """
+    logger.info("Fetching all scans")
     scans = db.query(Scan).order_by(Scan.created_at.desc()).all()
+    logger.info(f"Found {len(scans)} scans")
     return {
         "scans": [
             {

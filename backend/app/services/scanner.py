@@ -4,19 +4,26 @@ import os
 import re
 from pathlib import Path
 from typing import List, Dict, Any
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class SecurityScanner:
     def __init__(self, extract_dir: str):
         self.extract_dir = Path(extract_dir)
+        logger.info(f"SecurityScanner initialized for: {self.extract_dir}")
 
     def run_bandit(self) -> List[Dict[str, Any]]:
         """Run Bandit on extracted Python files"""
+        logger.info("Starting Bandit security scan")
         results = []
 
         python_files = list(self.extract_dir.rglob("*.py"))
+        logger.info(f"Found {len(python_files)} Python files to scan")
 
         if not python_files:
+            logger.info("No Python files found to scan")
             return results
 
         bandit_json_file = self.extract_dir / "bandit_results.json"
@@ -33,8 +40,10 @@ class SecurityScanner:
                 "--exclude",
                 "tests,test",
             ]
+            logger.info(f"Running Bandit: {' '.join(cmd)}")
 
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            logger.info(f"Bandit scan completed with return code: {result.returncode}")
 
             if bandit_json_file.exists():
                 with open(bandit_json_file, "r") as f:
@@ -206,19 +215,29 @@ class SecurityScanner:
 
     def scan(self) -> Dict[str, Any]:
         """Run both Bandit and Safety scans"""
+        logger.info("Starting full security scan")
         vulnerabilities = []
 
         bandit_results = self.run_bandit()
         vulnerabilities.extend(bandit_results)
+        logger.info(f"Bandit scan found {len(bandit_results)} vulnerabilities")
 
         safety_results = self.run_safety()
         vulnerabilities.extend(safety_results)
+        logger.info(f"Safety scan found {len(safety_results)} vulnerabilities")
+
+        by_severity = self._count_by_severity(vulnerabilities)
+        risk_score = self._calculate_risk_score(vulnerabilities)
+
+        logger.info(
+            f"Security scan complete - Total: {len(vulnerabilities)}, Risk score: {risk_score}, By severity: {by_severity}"
+        )
 
         return {
             "vulnerabilities": vulnerabilities,
             "total": len(vulnerabilities),
-            "by_severity": self._count_by_severity(vulnerabilities),
-            "risk_score": self._calculate_risk_score(vulnerabilities),
+            "by_severity": by_severity,
+            "risk_score": risk_score,
         }
 
     def _count_by_severity(self, vulnerabilities: List[Dict]) -> Dict[str, int]:

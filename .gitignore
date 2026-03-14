@@ -24,6 +24,7 @@ dist/
 # Logs
 *.log
 npm-debug.log*
+logs/
 
 # IDE
 .vscode/
