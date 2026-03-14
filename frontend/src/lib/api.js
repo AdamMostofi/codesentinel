@@ -72,10 +72,15 @@ export const deleteScan = async (scanId) => {
 export const createScanWithResults = async (file, onStatusChange) => {
   // Step 1: Upload the file
   onStatusChange?.('uploading');
-  const { scan_id } = await createScan(file);
+  const response = await createScan(file);
+  const scanId = response.id;
+  
+  if (!scanId) {
+    throw new Error("Failed to get scan ID from response");
+  }
   
   // Step 2: Poll for results
-  return pollForResults(scan_id, onStatusChange);
+  return pollForResults(scanId, onStatusChange);
 };
 
 /**
