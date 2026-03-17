@@ -4,9 +4,10 @@ import { useState, useEffect, useRef } from "react";
 import { 
   Shield, Upload, Activity, Clock, AlertTriangle, CheckCircle, 
   XCircle, Loader2, ChevronDown, ChevronUp, FileCode, History,
-  Trash2, RefreshCw, ArrowLeft, BarChart3, AlertOctagon, Sun, Moon, Monitor
+  Trash2, RefreshCw, ArrowLeft, BarChart3, AlertOctagon, Sun, Moon, Monitor,
+  Fingerprint, Zap, Search, Terminal
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useSpring, useTransform } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { 
   healthCheck, 
@@ -16,12 +17,24 @@ import {
   deleteScan 
 } from "@/lib/api";
 
+// Animated number counter component
+function CountUpNumber({ value, duration = 1.5 }) {
+  const spring = useSpring(0, { duration: duration * 1000, bounce: 0 });
+  const display = useTransform(spring, (current) => Math.round(current).toLocaleString());
+  
+  useEffect(() => {
+    spring.set(value);
+  }, [value, spring]);
+  
+  return <motion.span>{display}</motion.span>;
+}
+
 // Severity colors mapping
 const severityColors = {
-  critical: { bg: "bg-red-600", text: "text-red-400", border: "border-red-500/30", fill: "#ef4444" },
-  high: { bg: "bg-orange-500", text: "text-orange-400", border: "border-orange-500/30", fill: "#f97316" },
-  medium: { bg: "bg-yellow-500", text: "text-yellow-400", border: "border-yellow-500/30", fill: "#eab308" },
-  low: { bg: "bg-blue-500", text: "text-blue-400", border: "border-blue-500/30", fill: "#3b82f6" }
+  critical: { bg: "bg-red-600", text: "text-red-400", border: "border-red-500/30", fill: "#ef4444", glow: "shadow-red-500/20" },
+  high: { bg: "bg-orange-500", text: "text-orange-400", border: "border-orange-500/30", fill: "#f97316", glow: "shadow-orange-500/20" },
+  medium: { bg: "bg-yellow-500", text: "text-yellow-400", border: "border-yellow-500/30", fill: "#eab308", glow: "shadow-yellow-500/20" },
+  low: { bg: "bg-blue-500", text: "text-blue-400", border: "border-blue-500/30", fill: "#3b82f6", glow: "shadow-blue-500/20" }
 };
 
 // Get risk score color
@@ -334,52 +347,69 @@ export default function Home() {
             </button>
           </div>
           
-          <div className="flex-1 overflow-y-auto p-2">
+          <div className="flex-1 overflow-y-auto p-3">
             {loadingHistory ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="w-6 h-6 text-zinc-500 animate-spin" />
               </div>
             ) : scanHistory.length === 0 ? (
-              <p className="text-zinc-500 text-sm text-center py-8">No scans yet</p>
+              <div className="text-center py-8">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-zinc-800/50 flex items-center justify-center">
+                  <History className="w-6 h-6 text-zinc-500" />
+                </div>
+                <p className="text-zinc-500 text-sm">No scans yet</p>
+                <p className="text-zinc-600 text-xs mt-1">Upload a file to get started</p>
+              </div>
             ) : (
               <div className="space-y-2">
-                {scanHistory.map((scan) => (
+                {scanHistory.map((scan, index) => (
                   <motion.div
                     key={scan.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
                     onClick={() => viewScan(scan.id)}
-                    className={`p-3 rounded-lg cursor-pointer transition-all hover:bg-zinc-800 ${
-                      scanResult?.id === scan.id ? 'bg-zinc-800 border border-emerald-500/30' : 'border border-transparent'
+                    className={`group p-3 rounded-xl cursor-pointer transition-all hover:bg-zinc-800/80 ${
+                      scanResult?.id === scan.id 
+                        ? 'bg-zinc-800 border border-emerald-500/30 shadow-lg shadow-emerald-500/5' 
+                        : 'border border-transparent hover:border-zinc-700'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-sm truncate flex-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium text-sm truncate flex-1 text-zinc-200 group-hover:text-emerald-400 transition-colors">
                         {scan.project_name || scan.file_name || 'Untitled Scan'}
                       </span>
-                      <button 
+                      <motion.button 
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
                         onClick={(e) => handleDeleteScan(scan.id, e)}
-                        className="p-1 hover:bg-zinc-700 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="p-1.5 hover:bg-zinc-700 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
                       >
-                        <Trash2 className="w-3 h-3 text-zinc-400" />
-                      </button>
+                        <Trash2 className="w-3.5 h-3.5 text-zinc-400" />
+                      </motion.button>
                     </div>
                     <div className="flex items-center justify-between text-xs text-zinc-500">
-                      <span>{formatDate(scan.created_at)}</span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {formatDate(scan.created_at)}
+                      </span>
                       {scan.risk_score !== undefined && (
-                        <span className={getRiskColor(scan.risk_score).text}>
+                        <span className={`font-semibold ${getRiskColor(scan.risk_score).text}`}>
                           {scan.risk_score}
                         </span>
                       )}
                     </div>
                     <div className="mt-2 flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                      <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 ${
                         scan.status === 'completed' 
-                          ? 'bg-emerald-500/20 text-emerald-400' 
+                          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' 
                           : scan.status === 'failed'
-                          ? 'bg-red-500/20 text-red-400'
-                          : 'bg-yellow-500/20 text-yellow-400'
+                          ? 'bg-red-500/15 text-red-400 border border-red-500/20'
+                          : 'bg-yellow-500/15 text-yellow-400 border border-yellow-500/20'
                       }`}>
+                        {scan.status === 'completed' ? <CheckCircle className="w-3 h-3" /> :
+                         scan.status === 'failed' ? <XCircle className="w-3 h-3" /> :
+                         <Loader2 className="w-3 h-3 animate-spin" />}
                         {scan.status}
                       </span>
                     </div>
@@ -393,21 +423,61 @@ export default function Home() {
 
       {/* Main Content */}
       <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-72' : 'ml-0'}`}>
-        <header className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm sticky top-0 z-10">
+        {/* Background effects */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl" />
+        </div>
+        
+        <header className="relative border-b border-zinc-800/50 bg-zinc-900/80 backdrop-blur-xl sticky top-0 z-10">
+          {/* Header gradient line */}
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
+          
           <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               {!sidebarOpen && (
-                <button 
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setSidebarOpen(true)}
-                  className="p-1 hover:bg-zinc-800 rounded mr-2"
+                  className="p-2 hover:bg-zinc-800 rounded-xl mr-1"
                 >
                   <History className="w-5 h-5 text-zinc-400" />
-                </button>
+                </motion.button>
               )}
-              <Shield className="w-8 h-8 text-emerald-500" />
-              <span className="text-xl font-bold tracking-tight">CodeSentinel</span>
+              <div className="relative">
+                <div className="absolute inset-0 bg-emerald-500/20 rounded-xl blur-xl" />
+                <div className="relative p-2 bg-zinc-800/80 rounded-xl">
+                  <Shield className="w-7 h-7 text-emerald-500" />
+                </div>
+              </div>
+              <div>
+                <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-zinc-100 to-zinc-400 bg-clip-text text-transparent">
+                  CodeSentinel
+                </span>
+                <p className="text-xs text-zinc-500 -mt-0.5">Security Scanner</p>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-4 text-sm">
+              {/* Status indicator */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800/80 rounded-full"
+              >
+                <span className={`relative flex h-2 w-2`}>
+                  <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                    backendStatus === "Connected" ? "bg-emerald-500" : "bg-red-500"
+                  }`} />
+                  <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                    backendStatus === "Connected" ? "bg-emerald-500" : "bg-red-500"
+                  }`} />
+                </span>
+                <span className={backendStatus === "Connected" ? "text-emerald-400" : "text-red-400"}>
+                  {backendStatus}
+                </span>
+              </motion.div>
+              
               {/* Theme Toggle */}
               <div 
                 className="theme-toggle"
@@ -442,111 +512,208 @@ export default function Home() {
                   <Monitor className="w-4 h-4" />
                 </button>
               </div>
-              <Activity className={`w-4 h-4 ${backendStatus === "Connected" ? "text-emerald-500" : "text-red-500"}`} />
-              <span className={backendStatus === "Connected" ? "text-emerald-500" : "text-red-500"}>
-                {backendStatus}
-              </span>
             </div>
           </div>
         </header>
 
-        <main className="max-w-5xl mx-auto px-6 py-8">
+        <main className="relative max-w-5xl mx-auto px-6 py-8">
           {/* Upload Area or Results */}
           {scanResult ? (
             /* Results Dashboard */
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-6"
+              className="space-y-8"
             >
               {/* Header with back button */}
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-2xl font-bold">Scan Results</h1>
-                  <p className="text-zinc-400 text-sm">
+                  <motion.h1 
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="text-2xl font-bold flex items-center gap-3"
+                  >
+                    <span className="w-1 h-8 bg-gradient-to-b from-emerald-500 to-emerald-600 rounded-full" />
+                    Scan Results
+                  </motion.h1>
+                  <motion.p 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="text-zinc-400 text-sm mt-1 flex items-center gap-2"
+                  >
+                    <FileCode className="w-4 h-4" />
                     {scanResult.project_name || scanResult.file_name || 'Code Analysis'}
-                  </p>
+                  </motion.p>
                 </div>
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2 }}
                   onClick={() => { setScanResult(null); setScanStatus(null); }}
-                  className="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl transition-all border border-zinc-700 hover:border-emerald-500/30 group"
                 >
-                  <Upload className="w-4 h-4" />
-                  New Scan
-                </button>
+                  <Upload className="w-4 h-4 text-zinc-400 group-hover:text-emerald-400 transition-colors" />
+                  <span className="font-medium">New Scan</span>
+                </motion.button>
               </div>
 
               {/* Risk Score & Summary Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Risk Score Card */}
                 <motion.div 
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.1 }}
-                  className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6"
+                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1, type: "spring", stiffness: 100 }}
+                  className={`relative overflow-hidden bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-2xl p-6 group ${
+                    getRiskColor(scanResult.risk_score).bg.includes('green') ? 'hover:border-green-500/30' :
+                    getRiskColor(scanResult.risk_score).bg.includes('yellow') ? 'hover:border-yellow-500/30' :
+                    getRiskColor(scanResult.risk_score).bg.includes('orange') ? 'hover:border-orange-500/30' :
+                    'hover:border-red-500/30'
+                  }`}
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-zinc-400">Risk Score</h3>
-                    <AlertOctagon className="w-5 h-5 text-zinc-500" />
-                  </div>
-                  <div className="flex items-end gap-3">
-                    <span className={`text-5xl font-bold ${getRiskColor(scanResult.risk_score).text}`}>
-                      {scanResult.risk_score ?? 0}
-                    </span>
-                    <span className="text-zinc-500 mb-2">/ 100</span>
-                  </div>
-                  <div className={`mt-3 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getRiskColor(scanResult.risk_score).bg}/20 ${getRiskColor(scanResult.risk_score).text}`}>
-                    {getRiskLevel(scanResult.risk_score)}
+                  {/* Animated gradient background */}
+                  <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 ${
+                    getRiskColor(scanResult.risk_score).bg.includes('green') ? 'bg-green-500' :
+                    getRiskColor(scanResult.risk_score).bg.includes('yellow') ? 'bg-yellow-500' :
+                    getRiskColor(scanResult.risk_score).bg.includes('orange') ? 'bg-orange-500' :
+                    'bg-red-500'
+                  }`} />
+
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="font-semibold text-zinc-400 flex items-center gap-2">
+                        <Fingerprint className="w-5 h-5" />
+                        Risk Score
+                      </h3>
+                      <div className={`p-2 rounded-xl ${
+                        getRiskColor(scanResult.risk_score).bg.includes('green') ? 'bg-green-500/10' :
+                        getRiskColor(scanResult.risk_score).bg.includes('yellow') ? 'bg-yellow-500/10' :
+                        getRiskColor(scanResult.risk_score).bg.includes('orange') ? 'bg-orange-500/10' :
+                        'bg-red-500/10'
+                      }`}>
+                        <AlertOctagon className={`w-5 h-5 ${
+                          getRiskColor(scanResult.risk_score).text
+                        }`} />
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-end gap-3">
+                      <motion.span 
+                        initial={{ scale: 0.5, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: 0.3, type: "spring" }}
+                        className={`text-6xl font-bold tracking-tight ${
+                          getRiskColor(scanResult.risk_score).text
+                        }`}
+                      >
+                        <CountUpNumber value={scanResult.risk_score ?? 0} />
+                      </motion.span>
+                      <span className="text-zinc-500 mb-2 text-lg">/ 100</span>
+                    </div>
+                    
+                    {/* Risk level indicator */}
+                    <motion.div 
+                      initial={{ y: 10, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.4 }}
+                      className={`mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold ${
+                        getRiskColor(scanResult.risk_score).bg
+                      }/20 ${getRiskColor(scanResult.risk_score).text}`}
+                    >
+                      <span className={`w-2 h-2 rounded-full animate-pulse ${
+                        getRiskColor(scanResult.risk_score).bg
+                      }`} />
+                      {getRiskLevel(scanResult.risk_score)}
+                    </motion.div>
+                    
+                    {/* Risk bar */}
+                    <div className="mt-5 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${scanResult.risk_score ?? 0}%` }}
+                        transition={{ delay: 0.5, duration: 1, ease: "easeOut" }}
+                        className={`h-full rounded-full ${
+                          getRiskColor(scanResult.risk_score).bg
+                        }`}
+                      />
+                    </div>
                   </div>
                 </motion.div>
 
                 {/* Vulnerability Count Card */}
                 <motion.div 
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6"
+                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, type: "spring", stiffness: 100 }}
+                  className="relative overflow-hidden bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-2xl p-6 group hover:border-zinc-700"
                 >
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold text-zinc-400">Vulnerabilities</h3>
-                    <AlertTriangle className="w-5 h-5 text-zinc-500" />
+                  <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl" />
+                  
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="font-semibold text-zinc-400 flex items-center gap-2">
+                        <Shield className="w-5 h-5" />
+                        Vulnerabilities
+                      </h3>
+                      <div className="p-2 rounded-xl bg-blue-500/10">
+                        <AlertTriangle className="w-5 h-5 text-blue-400" />
+                      </div>
+                    </div>
+                    <motion.span 
+                      initial={{ scale: 0.5, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ delay: 0.35, type: "spring" }}
+                      className="text-6xl font-bold text-zinc-100"
+                    >
+                      <CountUpNumber value={scanResult.vulnerability_count ?? 0} />
+                    </motion.span>
+                    <p className="text-zinc-500 text-sm mt-4 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                      Total issues found
+                    </p>
                   </div>
-                  <span className="text-5xl font-bold text-zinc-100">
-                    {scanResult.vulnerability_count ?? 0}
-                  </span>
-                  <p className="text-zinc-500 text-sm mt-3">Total issues found</p>
                 </motion.div>
 
                 {/* Severity Distribution Pie Chart */}
                 <motion.div 
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                  className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6"
+                  initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3, type: "spring", stiffness: 100 }}
+                  className="relative overflow-hidden bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-2xl p-6 group hover:border-zinc-700"
                 >
-                  <h3 className="font-semibold text-zinc-400 mb-2">Distribution</h3>
-                  <div className="h-28">
-                    {getPieChartData().length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={getPieChartData()}
+                  <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl" />
+                  
+                  <div className="relative">
+                    <h3 className="font-semibold text-zinc-400 mb-4 flex items-center gap-2">
+                      <Activity className="w-5 h-5" />
+                      Distribution
+                    </h3>
+                    <div className="h-32">
+                      {getPieChartData().length > 0 ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={getPieChartData()}
                             cx="50%"
                             cy="50%"
-                            innerRadius={25}
-                            outerRadius={45}
-                            paddingAngle={2}
+                            innerRadius={32}
+                            outerRadius={52}
+                            paddingAngle={3}
                             dataKey="value"
                           >
                             {getPieChartData().map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
+                              <Cell key={`cell-${index}`} fill={entry.color} stroke="transparent" />
                             ))}
                           </Pie>
                           <Tooltip 
                             contentStyle={{ 
                               backgroundColor: '#18181b', 
                               border: '1px solid #3f3f46',
-                              borderRadius: '8px'
+                              borderRadius: '12px',
+                              boxShadow: '0 10px 40px rgba(0,0,0,0.5)'
                             }}
                             itemStyle={{ color: '#fafafa' }}
                           />
@@ -554,18 +721,32 @@ export default function Home() {
                       </ResponsiveContainer>
                     ) : (
                       <div className="flex items-center justify-center h-full">
-                        <CheckCircle className="w-8 h-8 text-emerald-500" />
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: 0.5, type: "spring" }}
+                        >
+                          <CheckCircle className="w-12 h-12 text-emerald-500" />
+                        </motion.div>
                       </div>
                     )}
-                  </div>
-                  <div className="flex flex-wrap gap-2 mt-2">
+                    </div>
+                  <div className="flex flex-wrap gap-2 mt-4">
                     {Object.entries(scanResult.vulnerabilities_by_severity || {}).map(([sev, count]) => (
                       count > 0 && (
-                        <span key={sev} className={`text-xs px-2 py-1 rounded ${getSeverityColor(sev).bg} text-white`}>
+                        <motion.span 
+                          key={sev}
+                          initial={{ scale: 0.8, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ delay: 0.5 }}
+                          className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium ${getSeverityColor(sev).bg} text-white shadow-lg`}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
                           {sev}: {count}
-                        </span>
+                        </motion.span>
                       )
                     ))}
+                  </div>
                   </div>
                 </motion.div>
               </div>
@@ -576,9 +757,12 @@ export default function Home() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4 }}
-                  className="space-y-3"
+                  className="space-y-4"
                 >
-                  <h2 className="text-xl font-semibold mb-4">Vulnerability Details</h2>
+                  <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+                    <Search className="w-5 h-5 text-emerald-500" />
+                    Vulnerability Details
+                  </h2>
                   {scanResult.vulnerabilities.map((vuln, index) => {
                     const isExpanded = expandedVuln === vuln.id;
                     const sevColor = getSeverityColor(vuln.severity);
@@ -586,42 +770,69 @@ export default function Home() {
                     return (
                       <motion.div
                         key={vuln.id || index}
-                        initial={{ opacity: 0, y: 10 }}
+                        initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 * index }}
-                        className={`bg-zinc-900/50 border ${sevColor.border} rounded-xl overflow-hidden`}
+                        transition={{ delay: 0.05 * index, duration: 0.3 }}
+                        layout
+                        className={`relative group bg-zinc-900/80 backdrop-blur-sm border ${sevColor.border} rounded-2xl overflow-hidden shadow-lg ${sevColor.glow}`}
                       >
+                        {/* Severity indicator bar */}
+                        <div className={`absolute left-0 top-0 bottom-0 w-1 ${sevColor.bg}`} />
+                        
+                        {/* Glow effect on hover */}
+                        <div className={`absolute inset-0 ${sevColor.bg} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
+                        
                         <div 
-                          className="p-4 cursor-pointer hover:bg-zinc-800/50 transition-colors"
+                          className="p-5 cursor-pointer hover:bg-zinc-800/30 transition-all duration-200 pl-6"
                           onClick={() => setExpandedVuln(isExpanded ? null : vuln.id)}
                         >
                           <div className="flex items-start justify-between gap-4">
-                            <div className="flex items-start gap-3 flex-1">
-                              <span className={`px-2 py-1 rounded text-xs font-medium uppercase ${sevColor.bg} text-white`}>
-                                {vuln.severity}
-                              </span>
-                              <div className="flex-1">
-                                <h3 className="font-medium">{vuln.title}</h3>
-                                <div className="flex items-center gap-2 text-sm text-zinc-500 mt-1">
-                                  <FileCode className="w-3 h-3" />
-                                  <span className="font-mono">
-                                    {vuln.file_path}:{vuln.line_number}
+                            <div className="flex items-start gap-4 flex-1">
+                              <div className="flex flex-col items-center gap-2">
+                                <span className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider ${sevColor.bg} text-white shadow-lg`}>
+                                  {vuln.severity}
+                                </span>
+                                {/* Severity icon */}
+                                <div className={`p-2 rounded-lg ${sevColor.bg}/10`}>
+                                  <AlertTriangle className={`w-4 h-4 ${sevColor.text}`} />
+                                </div>
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold text-lg text-zinc-100 group-hover:text-emerald-400 transition-colors">
+                                  {vuln.title}
+                                </h3>
+                                <div className="flex items-center gap-3 text-sm text-zinc-500 mt-2 flex-wrap">
+                                  <span className="flex items-center gap-1.5 bg-zinc-800/80 px-2.5 py-1 rounded-md">
+                                    <FileCode className="w-3.5 h-3.5" />
+                                    <span className="font-mono text-xs">
+                                      {vuln.file_path}:{vuln.line_number}
+                                    </span>
                                   </span>
                                   {vuln.tool && (
-                                    <span className="px-2 py-0.5 bg-zinc-800 rounded text-xs">
-                                      {vuln.tool}
+                                    <span className="flex items-center gap-1.5 bg-zinc-800/80 px-2.5 py-1 rounded-md">
+                                      <Zap className="w-3.5 h-3.5 text-zinc-400" />
+                                      <span className="text-xs">{vuln.tool}</span>
                                     </span>
                                   )}
                                 </div>
                               </div>
                             </div>
-                            <button className="p-1">
-                              {isExpanded ? (
-                                <ChevronUp className="w-5 h-5 text-zinc-400" />
-                              ) : (
-                                <ChevronDown className="w-5 h-5 text-zinc-400" />
-                              )}
-                            </button>
+                            <motion.button 
+                              className={`p-2 rounded-xl ${isExpanded ? 'bg-zinc-800' : 'bg-zinc-800/50'} hover:bg-zinc-700 transition-colors`}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <motion.div
+                                animate={{ rotate: isExpanded ? 180 : 0 }}
+                                transition={{ duration: 0.2 }}
+                              >
+                                {isExpanded ? (
+                                  <ChevronUp className="w-5 h-5 text-zinc-400" />
+                                ) : (
+                                  <ChevronDown className="w-5 h-5 text-zinc-400" />
+                                )}
+                              </motion.div>
+                            </motion.button>
                           </div>
                         </div>
                         
@@ -631,29 +842,50 @@ export default function Home() {
                               initial={{ height: 0, opacity: 0 }}
                               animate={{ height: 'auto', opacity: 1 }}
                               exit={{ height: 0, opacity: 0 }}
-                              className="border-t border-zinc-800"
+                              transition={{ duration: 0.3, ease: "easeInOut" }}
+                              className="border-t border-zinc-800/50"
                             >
-                              <div className="p-4 space-y-4">
+                              <div className="p-6 space-y-5 pl-6">
                                 {vuln.code_snippet && (
                                   <div>
-                                    <h4 className="text-sm font-medium text-zinc-400 mb-2">Code Snippet</h4>
-                                    <pre className="bg-zinc-950 p-3 rounded-lg overflow-x-auto text-sm font-mono text-zinc-300">
-                                      <code>{vuln.code_snippet}</code>
-                                    </pre>
+                                    <h4 className="text-sm font-semibold text-zinc-400 mb-3 flex items-center gap-2">
+                                      <Terminal className="w-4 h-4" />
+                                      Code Snippet
+                                    </h4>
+                                    <div className="relative rounded-xl overflow-hidden">
+                                      <div className="absolute top-0 left-0 right-0 h-8 bg-zinc-800/50 flex items-center gap-1.5 px-3">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
+                                        <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+                                        <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
+                                      </div>
+                                      <pre className="bg-zinc-950/90 p-4 pt-10 rounded-xl overflow-x-auto text-sm font-mono text-zinc-300 leading-relaxed border border-zinc-800/50">
+                                        <code>{vuln.code_snippet}</code>
+                                      </pre>
+                                    </div>
                                   </div>
                                 )}
                                 
                                 {vuln.description && (
                                   <div>
-                                    <h4 className="text-sm font-medium text-zinc-400 mb-2">Description</h4>
-                                    <p className="text-zinc-300">{vuln.description}</p>
+                                    <h4 className="text-sm font-semibold text-zinc-400 mb-2 flex items-center gap-2">
+                                      <FileCode className="w-4 h-4" />
+                                      Description
+                                    </h4>
+                                    <p className="text-zinc-300 leading-relaxed bg-zinc-800/30 p-4 rounded-xl">
+                                      {vuln.description}
+                                    </p>
                                   </div>
                                 )}
                                 
                                 {vuln.remediation && (
                                   <div>
-                                    <h4 className="text-sm font-medium text-emerald-400 mb-2">Remediation</h4>
-                                    <p className="text-zinc-300">{vuln.remediation}</p>
+                                    <h4 className="text-sm font-semibold text-emerald-400 mb-2 flex items-center gap-2">
+                                      <CheckCircle className="w-4 h-4" />
+                                      Remediation
+                                    </h4>
+                                    <p className="text-zinc-300 leading-relaxed bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
+                                      {vuln.remediation}
+                                    </p>
                                   </div>
                                 )}
                               </div>
@@ -669,57 +901,120 @@ export default function Home() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="bg-zinc-900/50 border border-emerald-500/30 rounded-xl p-12 text-center"
+                  className="relative overflow-hidden bg-zinc-900/80 border border-emerald-500/30 rounded-2xl p-16 text-center"
                 >
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.2, type: "spring" }}
-                  >
-                    <CheckCircle className="w-16 h-16 mx-auto mb-4 text-emerald-500" />
-                  </motion.div>
-                  <h2 className="text-2xl font-bold text-emerald-400 mb-2">
-                    No Vulnerabilities Found!
-                  </h2>
-                  <p className="text-zinc-400 max-w-md mx-auto">
-                    Your code passed all security checks. Great job keeping your codebase secure!
-                  </p>
+                  {/* Background effects */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent" />
+                  <div className="absolute -top-20 -right-20 w-40 h-40 bg-emerald-500/20 rounded-full blur-3xl" />
+                  <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl" />
+                  
+                  <div className="relative">
+                    <motion.div
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ delay: 0.2, type: "spring", stiffness: 100 }}
+                      className="inline-flex mb-6"
+                    >
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-emerald-500/30 rounded-full blur-2xl" />
+                        <div className="relative p-4 bg-emerald-500/20 rounded-2xl border border-emerald-500/30">
+                          <CheckCircle className="w-16 h-16 text-emerald-500" />
+                        </div>
+                      </div>
+                    </motion.div>
+                    
+                    <motion.h2 
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                      className="text-3xl font-bold text-emerald-400 mb-3"
+                    >
+                      No Vulnerabilities Found!
+                    </motion.h2>
+                    <motion.p 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.4 }}
+                      className="text-zinc-400 max-w-md mx-auto text-lg"
+                    >
+                      Your code passed all security checks. Great job keeping your codebase secure!
+                    </motion.p>
+                    
+                    {/* Success indicators */}
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.5 }}
+                      className="flex items-center justify-center gap-4 mt-8"
+                    >
+                      {['Bandit', 'Safety', 'NodeJS'].map((tool, i) => (
+                        <span key={tool} className="px-4 py-2 bg-zinc-800/50 rounded-xl text-sm text-zinc-400 border border-zinc-700/50">
+                          {tool} ✓
+                        </span>
+                      ))}
+                    </motion.div>
+                  </div>
                 </motion.div>
               )}
             </motion.div>
           ) : (
             /* Upload Area */
             <>
-              <div className="text-center mb-8">
-                <h1 className="text-4xl font-bold mb-4">
-                  Secure Your Code with AI
-                </h1>
-                <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center mb-10"
+              >
+                <motion.h1 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-4xl font-bold mb-4 flex items-center justify-center gap-4"
+                >
+                  <span className="text-zinc-100">Secure Your Code</span>
+                  <span className="text-emerald-500">with AI</span>
+                </motion.h1>
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.1 }}
+                  className="text-zinc-400 text-lg max-w-2xl mx-auto"
+                >
                   Upload your codebase and get instant security analysis with AI-powered remediation guidance.
-                </p>
-              </div>
+                </motion.p>
+              </motion.div>
 
               {/* Loading State */}
               {isUploading ? (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="border-2 border-zinc-700 rounded-xl p-12 text-center bg-zinc-900/50"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="relative overflow-hidden border border-zinc-800 rounded-2xl p-12 text-center bg-zinc-900/60 backdrop-blur-sm"
                 >
-                  <div className="max-w-md mx-auto">
+                  {/* Background animation */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent" />
+                  <div className="absolute -top-20 -right-20 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl animate-pulse" />
+                  
+                  <div className="relative max-w-lg mx-auto">
                     <motion.div
                       animate={{ rotate: 360 }}
-                      transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                      transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
                     >
-                      <Loader2 className="w-16 h-16 mx-auto mb-6 text-emerald-500" />
+                      <div className="relative">
+                        <div className="absolute inset-0 bg-emerald-500/30 rounded-full blur-xl" />
+                        <Loader2 className="relative w-16 h-16 mx-auto mb-6 text-emerald-500" />
+                      </div>
                     </motion.div>
                     
-                    <h2 className="text-xl font-semibold mb-2">
+                    <motion.h2 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-xl font-semibold mb-2 text-zinc-100"
+                    >
                       Scanning your code...
-                    </h2>
+                    </motion.h2>
                     
                     {/* Progress Stages */}
-                    <div className="flex items-center justify-center gap-2 mt-6">
+                    <div className="flex items-center justify-center gap-1 mt-8">
                       {scanStages.map((stage, index) => {
                         const isActive = index <= currentStage;
                         const isCurrent = index === currentStage;
@@ -728,13 +1023,13 @@ export default function Home() {
                         return (
                           <div key={stage.key} className="flex items-center">
                             <motion.div
-                              initial={{ scale: 0.8 }}
+                              initial={{ scale: 0.8, opacity: 0 }}
                               animate={{ 
-                                scale: isCurrent ? 1.1 : 1,
-                                backgroundColor: isActive ? '#10b981' : '#3f3f46'
+                                scale: isCurrent ? 1.15 : 1,
+                                opacity: isActive ? 1 : 0.5
                               }}
-                              className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                                isActive ? 'bg-emerald-500' : 'bg-zinc-700'
+                              className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
+                                isActive ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30' : 'bg-zinc-800'
                               }`}
                             >
                               <StageIcon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-zinc-500'}`} />
@@ -742,8 +1037,8 @@ export default function Home() {
                             {index < scanStages.length - 1 && (
                               <motion.div 
                                 initial={{ width: 0 }}
-                                animate={{ width: isActive ? 20 : 0 }}
-                                className="w-5 h-0.5 bg-emerald-500 mx-1"
+                                animate={{ width: isActive ? 24 : 0 }}
+                                className="h-0.5 bg-emerald-500 mx-1 rounded-full"
                               />
                             )}
                           </div>
@@ -764,81 +1059,171 @@ export default function Home() {
                 </motion.div>
               ) : (
                 /* File Upload Dropzone */
-                <div
-                  className={`border-2 border-dashed rounded-xl p-12 text-center transition-all cursor-pointer ${
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className={`relative group rounded-2xl overflow-hidden transition-all duration-300 ${
                     isDragging
-                      ? "border-emerald-500 bg-emerald-500/10"
-                      : "border-zinc-700 hover:border-zinc-600 bg-zinc-900/50"
+                      ? "scale-[1.02] border-emerald-500/60"
+                      : "border-zinc-800 hover:border-zinc-700"
                   }`}
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onClick={handleClick}
                 >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".zip"
-                    onChange={handleInputChange}
-                    className="hidden"
-                  />
+                  {/* Animated border gradient */}
+                  <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r from-emerald-500/0 via-emerald-500/30 to-emerald-500/0 opacity-0 transition-opacity duration-500 ${
+                    isDragging ? "opacity-100" : "group-hover:opacity-60"
+                  }`} style={{ padding: '2px' }}>
+                    <div className="absolute inset-0 bg-zinc-900/95 rounded-2xl" />
+                  </div>
                   
-                  <Upload className="w-12 h-12 mx-auto mb-4 text-zinc-500" />
-                  <p className="text-lg font-medium mb-2">
-                    Drag & drop your code zip file here
-                  </p>
-                  <p className="text-zinc-500 text-sm mb-6">
-                    or click to browse • Max 50MB • .zip files only
-                  </p>
-                  <button className="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-lg font-medium transition-colors">
-                    Select File
-                  </button>
-                </div>
+                  {/* Glow effect */}
+                  <div className={`absolute -inset-1 rounded-2xl bg-emerald-500/20 blur-xl transition-opacity duration-300 ${
+                    isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-50"
+                  }`} />
+                  
+                  <div className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 ${
+                    isDragging
+                      ? "bg-emerald-500/10 border-emerald-500/50"
+                      : "bg-zinc-900/60 backdrop-blur-sm border-zinc-800 hover:border-zinc-600"
+                  }`}>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".zip"
+                      onChange={handleInputChange}
+                      className="hidden"
+                    />
+                    
+                    <motion.div
+                      animate={{ 
+                        scale: isDragging ? 1.1 : 1,
+                        y: isDragging ? -5 : 0
+                      }}
+                      transition={{ duration: 0.2 }}
+                      className="relative"
+                    >
+                      {/* Icon container with glow */}
+                      <div className={`relative inline-flex mb-6 ${isDragging ? 'text-emerald-400' : ''}`}>
+                        <div className={`absolute inset-0 bg-emerald-500/30 rounded-full blur-xl transition-all duration-300 ${
+                          isDragging ? "scale-150" : "scale-100 group-hover:scale-125"
+                        }`} />
+                        <div className={`relative p-4 rounded-2xl transition-all duration-300 ${
+                          isDragging 
+                            ? "bg-emerald-500/20" 
+                            : "bg-zinc-800/50 group-hover:bg-zinc-800"
+                        }`}>
+                          <Upload className="w-12 h-12 text-zinc-400 group-hover:text-emerald-400 transition-colors" />
+                        </div>
+                      </div>
+                    </motion.div>
+                    
+                    <motion.p 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                      className="text-lg font-semibold mb-2 text-zinc-200"
+                    >
+                      {isDragging ? "Drop your file here" : "Drag & drop your code zip file here"}
+                    </motion.p>
+                    <p className="text-zinc-500 text-sm mb-6">
+                      or click to browse • Max 50MB • .zip files only
+                    </p>
+                    <motion.button 
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="relative bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-3 rounded-xl font-semibold transition-all shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40"
+                    >
+                      <span className="relative flex items-center gap-2">
+                        <Terminal className="w-4 h-4" />
+                        Select File
+                      </span>
+                    </motion.button>
+                  </div>
+                </motion.div>
               )}
 
               {/* Error Message */}
               {error && (
                 <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-3"
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  className="mt-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center gap-4 shadow-lg shadow-red-500/10"
                 >
-                  <XCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                  <div className="p-2 bg-red-500/20 rounded-lg">
+                    <XCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                  </div>
                   <p className="text-red-400 text-sm flex-1">{error}</p>
-                  <button 
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={retryScan}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded text-sm transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm transition-colors"
                   >
                     <RefreshCw className="w-4 h-4" />
                     Retry
-                  </button>
+                  </motion.button>
                 </motion.div>
               )}
 
               {/* Features Grid */}
-              <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6">
-                  <Shield className="w-8 h-8 text-emerald-500 mb-3" />
-                  <h3 className="font-semibold mb-2">Security Scanning</h3>
-                  <p className="text-zinc-500 text-sm">
-                    Bandit & Safety scan your Python code for vulnerabilities
-                  </p>
-                </div>
-                <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6">
-                  <Activity className="w-8 h-8 text-blue-500 mb-3" />
-                  <h3 className="font-semibold mb-2">AI Remediation</h3>
-                  <p className="text-zinc-500 text-sm">
-                    Get intelligent fix suggestions powered by Groq AI
-                  </p>
-                </div>
-                <div className="bg-zinc-900/50 border border-zinc-800 rounded-xl p-6">
-                  <Clock className="w-8 h-8 text-purple-500 mb-3" />
-                  <h3 className="font-semibold mb-2">Scan History</h3>
-                  <p className="text-zinc-500 text-sm">
-                    Track your security progress over time
-                  </p>
-                </div>
-              </div>
+              <motion.div 
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6"
+              >
+                <motion.div 
+                  whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                  className="group relative bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 hover:border-emerald-500/30 transition-all duration-300"
+                >
+                  <div className="absolute -top-10 -right-10 w-20 h-20 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all" />
+                  <div className="relative">
+                    <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 transition-colors">
+                      <Shield className="w-6 h-6 text-emerald-500" />
+                    </div>
+                    <h3 className="font-semibold mb-2 text-zinc-100">Security Scanning</h3>
+                    <p className="text-zinc-500 text-sm leading-relaxed">
+                      Bandit & Safety scan your Python code for vulnerabilities
+                    </p>
+                  </div>
+                </motion.div>
+                
+                <motion.div 
+                  whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                  className="group relative bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 hover:border-blue-500/30 transition-all duration-300"
+                >
+                  <div className="absolute -top-10 -right-10 w-20 h-20 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all" />
+                  <div className="relative">
+                    <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-500/20 transition-colors">
+                      <Activity className="w-6 h-6 text-blue-500" />
+                    </div>
+                    <h3 className="font-semibold mb-2 text-zinc-100">AI Remediation</h3>
+                    <p className="text-zinc-500 text-sm leading-relaxed">
+                      Get intelligent fix suggestions powered by Groq AI
+                    </p>
+                  </div>
+                </motion.div>
+                
+                <motion.div 
+                  whileHover={{ y: -5, transition: { duration: 0.2 } }}
+                  className="group relative bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 hover:border-purple-500/30 transition-all duration-300"
+                >
+                  <div className="absolute -top-10 -right-10 w-20 h-20 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-all" />
+                  <div className="relative">
+                    <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-500/20 transition-colors">
+                      <Clock className="w-6 h-6 text-purple-500" />
+                    </div>
+                    <h3 className="font-semibold mb-2 text-zinc-100">Scan History</h3>
+                    <p className="text-zinc-500 text-sm leading-relaxed">
+                      Track your security progress over time
+                    </p>
+                  </div>
+                </motion.div>
+              </motion.div>
             </>
           )}
         </main>
