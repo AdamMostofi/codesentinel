@@ -136,6 +136,84 @@ class SecurityScanner:
 
         return results
 
+    def run_semgrep(self) -> List[Dict[str, Any]]:
+        """Run Semgrep on the extracted code"""
+        logger.info("Starting Semgrep security scan")
+        results = []
+
+        semgrep_json_file = self.extract_dir / "semgrep_results.json"
+
+        try:
+            cmd = [
+                "semgrep",
+                "scan",
+                "--json",
+                "--output",
+                str(semgrep_json_file),
+                "--no-git-ignore",
+                "--no-git-ignore",
+                str(self.extract_dir),
+            ]
+            logger.info(f"Running Semgrep: {' '.join(cmd)}")
+
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+            logger.info(f"Semgrep scan completed with return code: {result.returncode}")
+
+            if semgrep_json_file.exists():
+                with open(semgrep_json_file, "r") as f:
+                    try:
+                        data = json.load(f)
+                        # Semgrep returns results in "results" key
+                        if "results" in data:
+                            for issue in data["results"]:
+                                # Extract severity - Semgrep uses "info", "warning", "error"
+                                severity = issue.get("extra", {}).get(
+                                    "severity", "MEDIUM"
+                                )
+                                # Map Semgrep severity to our format
+                                severity_map = {
+                                    "ERROR": "HIGH",
+                                    "WARNING": "MEDIUM",
+                                    "INFO": "LOW",
+                                }
+                                mapped_severity = severity_map.get(severity, "MEDIUM")
+
+                                # Get the code snippet from the match
+                                extra = issue.get("extra", {})
+                                lines = extra.get("lines", "")
+
+                                # Get the rule metadata
+                                metadata = extra.get("metadata", {})
+
+                                results.append(
+                                    {
+                                        "tool": "semgrep",
+                                        "severity": mapped_severity,
+                                        "title": issue.get("check_id", "Unknown issue"),
+                                        "description": extra.get(
+                                            "message", "Security issue found by Semgrep"
+                                        ),
+                                        "file_path": issue.get("path", ""),
+                                        "line_number": issue.get("start", {}).get(
+                                            "line", 0
+                                        ),
+                                        "code_snippet": lines,
+                                        "raw_output": json.dumps(issue),
+                                    }
+                                )
+                    except json.JSONDecodeError:
+                        logger.warning("Failed to parse Semgrep JSON output")
+
+                # Clean up the results file
+                semgrep_json_file.unlink()
+
+        except subprocess.TimeoutExpired:
+            logger.warning("Semgrep scan timed out")
+        except Exception as e:
+            logger.error(f"Semgrep error: {e}")
+
+        return results
+
     def _get_bandit_description(self, issue: Dict) -> str:
         """Generate human-readable description for Bandit issue"""
         issue_id = issue.get("issue_id", "")
@@ -214,7 +292,7 @@ class SecurityScanner:
         )
 
     def scan(self) -> Dict[str, Any]:
-        """Run both Bandit and Safety scans"""
+        """Run Bandit, Safety, and Semgrep scans"""
         logger.info("Starting full security scan")
         vulnerabilities = []
 
@@ -225,6 +303,10 @@ class SecurityScanner:
         safety_results = self.run_safety()
         vulnerabilities.extend(safety_results)
         logger.info(f"Safety scan found {len(safety_results)} vulnerabilities")
+
+        semgrep_results = self.run_semgrep()
+        vulnerabilities.extend(semgrep_results)
+        logger.info(f"Semgrep scan found {len(semgrep_results)} vulnerabilities")
 
         by_severity = self._count_by_severity(vulnerabilities)
         risk_score = self._calculate_risk_score(vulnerabilities)
