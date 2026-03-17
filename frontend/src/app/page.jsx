@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { 
   Shield, Upload, Activity, Clock, AlertTriangle, CheckCircle, 
   XCircle, Loader2, ChevronDown, ChevronUp, FileCode, History,
-  Trash2, RefreshCw, ArrowLeft, BarChart3, AlertOctagon
+  Trash2, RefreshCw, ArrowLeft, BarChart3, AlertOctagon, Sun, Moon, Monitor
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
@@ -75,6 +75,23 @@ export default function Home() {
       });
     
     loadScanHistory();
+    
+    // Initialize theme toggle state
+    const initThemeToggle = () => {
+      const storedTheme = localStorage.getItem('theme') || 'dark';
+      const container = document.querySelector('.theme-toggle');
+      if (!container) return;
+      
+      const buttons = container.querySelectorAll('.theme-toggle-btn');
+      buttons.forEach((btn) => {
+        const isActive = btn.dataset.theme === storedTheme;
+        btn.setAttribute('aria-checked', isActive);
+        btn.classList.toggle('active', isActive);
+      });
+    };
+    
+    // Delay to ensure DOM is ready
+    setTimeout(initThemeToggle, 0);
   }, []);
 
   // Load scan history
@@ -391,6 +408,40 @@ export default function Home() {
               <span className="text-xl font-bold tracking-tight">CodeSentinel</span>
             </div>
             <div className="flex items-center gap-2 text-sm">
+              {/* Theme Toggle */}
+              <div 
+                className="theme-toggle"
+                role="radiogroup" 
+                aria-label="Theme selection"
+              >
+                <button
+                  className="theme-toggle-btn"
+                  data-theme="light"
+                  role="radio"
+                  aria-checked="false"
+                  aria-label="Light theme"
+                >
+                  <Sun className="w-4 h-4" />
+                </button>
+                <button
+                  className="theme-toggle-btn"
+                  data-theme="dark"
+                  role="radio"
+                  aria-checked="false"
+                  aria-label="Dark theme"
+                >
+                  <Moon className="w-4 h-4" />
+                </button>
+                <button
+                  className="theme-toggle-btn"
+                  data-theme="system"
+                  role="radio"
+                  aria-checked="false"
+                  aria-label="System theme"
+                >
+                  <Monitor className="w-4 h-4" />
+                </button>
+              </div>
               <Activity className={`w-4 h-4 ${backendStatus === "Connected" ? "text-emerald-500" : "text-red-500"}`} />
               <span className={backendStatus === "Connected" ? "text-emerald-500" : "text-red-500"}>
                 {backendStatus}
