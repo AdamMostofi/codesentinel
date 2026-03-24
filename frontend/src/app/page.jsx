@@ -152,7 +152,7 @@ export default function Home() {
 
     try {
       // Upload file and get scan ID
-      const { scan_id } = await createScan(file);
+      const { id: scan_id } = await createScan(file);
       
       // Update stage to extracting
       setCurrentStage(1);
