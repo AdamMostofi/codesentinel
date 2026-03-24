@@ -1,81 +1,72 @@
 # CodeSentinel
 
-An AI-powered security vulnerability scanner that analyzes codebases and provides intelligent remediation guidance.
+An AI-powered security vulnerability scanner for Python codebases that combines industry-standard security tools with intelligent remediation guidance.
 
-![CodeSentinel](https://img.shields.io/badge/CodeSentinel-Security%20Scanner-green)
-![Next.js](https://img.shields.io/badge/Next.js-14-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-Python-orange)
+[![Next.js](https://img.shields.io/badge/Next.js-16.1.6-blue?logo=next.js)](https://nextjs.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109.0-orange?logo=fastapi)](https://fastapi.tiangolo.com/)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.12+-green?logo=python)](https://python.org/)
 
-## 🚀 Overview
+## Features
 
-CodeSentinel is a web-based security scanning tool that helps developers identify vulnerabilities in their Python codebases. It combines industry-standard security tools (Bandit, Safety) with AI-powered remediation advice to help developers fix security issues quickly.
+- **Multi-Tool Security Scanning** - Combines Bandit, Safety, and Semgrep for comprehensive analysis
+- **Risk Score Calculation** - Visual risk assessment (0-100) with severity breakdown
+- **Scan History** - Track and review past scans with local SQLite storage
+- **Modern UI** - Dark/light theme with real-time progress indicators
+- **ZIP File Upload** - Easy project submission via drag-and-drop upload
+- **AI Remediation Ready** - Optional Groq API integration for intelligent fix suggestions
 
-## 🎯 Features
-
-- **Automated Security Scanning** - Scan Python code for vulnerabilities using Bandit
-- **Dependency Analysis** - Check for vulnerable dependencies with Safety
-- **AI-Powered Remediation** - Get intelligent fix suggestions powered by Groq LLM
-- **Risk Score** - Visual risk assessment (0-100) with severity breakdown
-- **Scan History** - Track and review past scans
-- **Modern UI** - Dark-themed interface with real-time progress indicators
-
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
-- **Next.js 14** - React framework with App Router
-- **Tailwind CSS** - Utility-first CSS framework
-- **Recharts** - Data visualization for vulnerability charts
-- **Framer Motion** - Smooth animations
-- **Lucide React** - Icon library
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Next.js | 16.1.6 | React framework with App Router |
+| React | 19.2.3 | UI library |
+| Tailwind CSS | v4 | Utility-first CSS framework |
+| Framer Motion | 12.36.0 | Smooth animations |
+| Recharts | 3.8.0 | Data visualization |
+| Lucide React | 0.577.0 | Icon library |
 
 ### Backend
-- **FastAPI** - Modern Python web framework
-- **SQLAlchemy** - SQL database toolkit
-- **SQLite** - Lightweight database
-- **Bandit** - Python security linter
-- **Safety** - Python dependency security checker
-- **Groq SDK** - LLM integration for AI remediation
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| FastAPI | 0.109.0 | Modern Python web framework |
+| SQLAlchemy | 2.0.25 | ORM and database toolkit |
+| Bandit | 1.7.8 | Python SAST security linter |
+| Safety | 3.2.0 | Python dependency security checker |
+| Semgrep | 1.77.0 | Community Edition static analysis |
+| Groq SDK | 0.4.2 | LLM integration (optional) |
 
-## 📸 Screenshots
-
-### Landing Page
-- Dark-themed security-focused UI
-- Drag & drop file upload
-- Real-time connection status
-
-### Results Dashboard
-- Risk score gauge (0-100)
-- Vulnerability breakdown by severity
-- Expandable vulnerability cards with details
-
-## 🚦 Getting Started
+## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - Python 3.12+
-- Git
+- pip (Python package manager)
 
 ### Installation
 
-1. **Clone the repository**
+**1. Clone the repository**
 ```bash
 git clone https://github.com/AdamMostofi/codesentinel.git
 cd codesentinel
 ```
 
-2. **Set up the backend**
+**2. Set up the backend**
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
-# Create .env file
-echo "GROQ_API_KEY=your_groq_api_key" > .env
+# Copy environment template
+cp .env.example .env
+# Edit .env and add your Groq API key (optional, for AI remediation)
 ```
 
-3. **Set up the frontend**
+**3. Set up the frontend**
 ```bash
 cd frontend
 npm install
@@ -83,86 +74,119 @@ npm install
 
 ### Running the Application
 
-1. **Start the backend**
+**Start the backend** (runs on http://localhost:8000)
 ```bash
 cd backend
 source venv/bin/activate
 python -m app.main
 ```
-Backend runs at: http://localhost:8000
 
-2. **Start the frontend**
+**Start the frontend** (runs on http://localhost:3000)
 ```bash
 cd frontend
 npm run dev
 ```
-Frontend runs at: http://localhost:3000
 
-3. **Open in browser**
+**Open in browser**
 Navigate to http://localhost:3000
 
-### Using the Scanner
+### Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `GROQ_API_KEY` | No | Free API key from [console.groq.com](https://console.groq.com) for AI-powered remediation suggestions |
+
+## Usage
 
 1. Prepare a `.zip` file containing your Python project
-2. Drag & drop the zip file onto the upload area
+2. Drag and drop the zip file onto the upload area
 3. Wait for the scan to complete
-4. Review vulnerabilities and AI-powered remediation advice
-5. Use the scan history to track improvements over time
+4. Review vulnerabilities grouped by severity
+5. View AI-powered remediation advice (if `GROQ_API_KEY` is configured)
+6. Use scan history to track improvements over time
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 codesentinel/
-├── frontend/                 # Next.js frontend
-│   ├── src/
-│   │   ├── app/            # Pages and components
-│   │   ├── lib/            # API utilities
-│   │   └── styles/         # Global styles
-│   └── package.json
-│
-├── backend/                 # FastAPI backend
+├── backend/
 │   ├── app/
-│   │   ├── api/           # API routes
-│   │   ├── core/          # Configuration
-│   │   ├── models/        # Database models
-│   │   └── services/      # Business logic
+│   │   ├── api/routes.py          # API endpoints
+│   │   ├── core/config.py         # Configuration settings
+│   │   ├── database.py            # Database connection
+│   │   ├── main.py                # FastAPI application entry
+│   │   ├── models/scan.py         # SQLAlchemy models
+│   │   └── services/
+│   │       ├── file_handler.py    # ZIP upload handling
+│   │       └── scanner.py         # Security scanning logic
+│   ├── .env.example
+│   ├── codesentinel.db            # SQLite database
 │   └── requirements.txt
-│
+├── frontend/
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── page.jsx           # Main application page
+│   │   │   ├── layout.jsx         # Root layout
+│   │   │   └── globals.css        # Global styles
+│   │   └── lib/api.js             # API client
+│   ├── package.json
+│   └── ...
 ├── .gitignore
+├── LICENSE
 └── README.md
 ```
 
-## 🔧 API Endpoints
+## API Reference
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/scan` | Upload zip file and start scan |
-| GET | `/api/scans` | List all scans |
-| GET | `/api/scan/{id}` | Get scan details |
-| DELETE | `/api/scan/{id}` | Delete a scan |
-| GET | `/health` | Health check |
+| `POST` | `/api/scan` | Upload a `.zip` file and start a security scan |
+| `GET` | `/api/scans` | List all scans with summary information |
+| `GET` | `/api/scan/{scan_id}` | Get detailed scan results including all vulnerabilities |
+| `DELETE` | `/api/scan/{scan_id}` | Delete a scan and its associated files |
+| `GET` | `/health` | Health check endpoint |
 
-## 🐛 Known Issues
+### Example Response
 
-- Scan history initially returned wrong data structure (fixed in later commit)
-- Groq API key required for AI remediation features
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "project_name": "my-project.zip",
+  "status": "completed",
+  "risk_score": 72,
+  "vulnerability_count": 8,
+  "vulnerabilities_by_severity": {
+    "HIGH": 3,
+    "MEDIUM": 4,
+    "LOW": 1
+  },
+  "vulnerabilities": [
+    {
+      "tool": "bandit",
+      "severity": "HIGH",
+      "title": "Possible SQL Injection",
+      "file_path": "app/db.py",
+      "line_number": 42,
+      "code_snippet": "cursor.execute('SELECT * FROM users WHERE id = ' + user_id)",
+      "remediation": "Use parameterized queries instead..."
+    }
+  ]
+}
+```
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 📝 License
+## License
 
-This project is for educational purposes.
+This project is licensed under the [GNU Affero General Public License v3.0](LICENSE).
 
-## 👤 Author
+## Acknowledgments
 
-- GitHub: [AdamMostofi](https://github.com/AdamMostofi)
-
-## 🙏 Acknowledgments
-
-- [Bandit](https://bandit.readthedocs.io/) - Security linting
-- [Safety](https://safety.pyup.io/) - Dependency checking
+- [Bandit](https://bandit.readthedocs.io/) - Security linting for Python
+- [Safety](https://safety.pyup.io/) - Dependency security checker
+- [Semgrep](https://semgrep.dev/) - Static analysis engine (Community Edition)
 - [Groq](https://groq.com/) - LLM API for AI remediation
-- [Next.js](https://nextjs.org/) - Frontend framework
-- [FastAPI](https://fastapi.tiangolo.com/) - Backend framework
+- [FastAPI](https://fastapi.tiangolo.com/) - Python web framework
+- [Next.js](https://nextjs.org/) - React framework
