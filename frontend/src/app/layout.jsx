@@ -20,7 +20,6 @@ export const metadata = {
  * Theme initialization script
  * Runs on client-side to prevent flash of wrong theme
  * - Checks localStorage for saved preference
- * - Falls back to system preference  
  * - Defaults to dark theme
  * - Applies theme to document
  */
@@ -28,19 +27,13 @@ const themeInitScript = `
 (function() {
   try {
     var storedTheme = localStorage.getItem('theme');
-    var systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     
     if (storedTheme === 'light') {
       document.documentElement.setAttribute('data-theme', 'light');
-    } else if (storedTheme === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else if (!storedTheme) {
-      // Default to dark theme if no preference stored
+    } else {
+      // Default to dark theme
       document.documentElement.setAttribute('data-theme', 'dark');
       localStorage.setItem('theme', 'dark');
-    } else if (storedTheme === 'system') {
-      // System preference - remove data-theme to let CSS media query handle it
-      document.documentElement.removeAttribute('data-theme');
     }
   } catch (e) {
     // Fallback to dark theme if localStorage is not available
@@ -70,13 +63,8 @@ export default function RootLayout({ children }) {
                 if (!theme) return;
                 
                 // Apply theme to document
-                if (theme === 'system') {
-                  document.documentElement.removeAttribute('data-theme');
-                  localStorage.removeItem('theme');
-                } else {
-                  document.documentElement.setAttribute('data-theme', theme);
-                  localStorage.setItem('theme', theme);
-                }
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
                 
                 // Update all toggle button states on the page
                 var allToggles = document.querySelectorAll('.theme-toggle');

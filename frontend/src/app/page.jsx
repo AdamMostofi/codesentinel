@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { 
   Shield, Upload, Activity, Clock, AlertTriangle, CheckCircle, 
   XCircle, Loader2, ChevronDown, ChevronUp, FileCode, History,
-  Trash2, RefreshCw, ArrowLeft, BarChart3, AlertOctagon, Sun, Moon, Monitor,
+  Trash2, RefreshCw, ArrowLeft, BarChart3, AlertOctagon, Sun, Moon,
   Fingerprint, Zap, Search, Terminal
 } from "lucide-react";
 import { motion, AnimatePresence, useSpring, useTransform } from "framer-motion";
@@ -325,40 +325,40 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex">
+    <div className="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)] flex">
       {/* History Sidebar */}
       <motion.aside 
         initial={{ x: -300 }}
         animate={{ x: sidebarOpen ? 0 : -300 }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="fixed left-0 top-0 h-full w-72 bg-zinc-900 border-r border-zinc-800 z-20 overflow-hidden"
+        className="fixed left-0 top-0 h-full w-72 bg-[var(--bg-secondary)] border-r border-[var(--border-default)] z-20 overflow-hidden"
       >
         <div className="flex flex-col h-full">
-          <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
+          <div className="p-4 border-b border-[var(--border-default)] flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <History className="w-5 h-5 text-zinc-400" />
+              <History className="w-5 h-5 text-[var(--text-secondary)]" />
               <span className="font-semibold">Scan History</span>
             </div>
             <button 
               onClick={() => setSidebarOpen(false)}
-              className="p-1 hover:bg-zinc-800 rounded"
+              className="p-1 hover:bg-[var(--bg-tertiary)] rounded"
             >
-              <ArrowLeft className="w-4 h-4 text-zinc-400" />
+              <ArrowLeft className="w-4 h-4 text-[var(--text-secondary)]" />
             </button>
           </div>
           
           <div className="flex-1 overflow-y-auto p-3">
             {loadingHistory ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 text-zinc-500 animate-spin" />
+                <Loader2 className="w-6 h-6 text-[var(--text-tertiary)] animate-spin" />
               </div>
             ) : scanHistory.length === 0 ? (
               <div className="text-center py-8">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-zinc-800/50 flex items-center justify-center">
-                  <History className="w-6 h-6 text-zinc-500" />
+                <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-[var(--bg-tertiary)] flex items-center justify-center">
+                  <History className="w-6 h-6 text-[var(--text-tertiary)]" />
                 </div>
-                <p className="text-zinc-500 text-sm">No scans yet</p>
-                <p className="text-zinc-600 text-xs mt-1">Upload a file to get started</p>
+                <p className="text-[var(--text-secondary)] text-sm">No scans yet</p>
+                <p className="text-[var(--text-tertiary)] text-xs mt-1">Upload a file to get started</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -369,26 +369,26 @@ export default function Home() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
                     onClick={() => viewScan(scan.id)}
-                    className={`group p-3 rounded-xl cursor-pointer transition-all hover:bg-zinc-800/80 ${
+                    className={`group p-3 rounded-xl cursor-pointer transition-all hover:bg-[var(--bg-tertiary)] ${
                       scanResult?.id === scan.id 
-                        ? 'bg-zinc-800 border border-emerald-500/30 shadow-lg shadow-emerald-500/5' 
-                        : 'border border-transparent hover:border-zinc-700'
+                        ? 'bg-[var(--bg-tertiary)] border border-emerald-500/30 shadow-lg shadow-emerald-500/5' 
+                        : 'border border-transparent hover:border-[var(--border-default)]'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-sm truncate flex-1 text-zinc-200 group-hover:text-emerald-400 transition-colors">
+                      <span className="font-medium text-sm truncate flex-1 text-[var(--text-primary)] group-hover:text-emerald-400 transition-colors">
                         {scan.project_name || scan.file_name || 'Untitled Scan'}
                       </span>
                       <motion.button 
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={(e) => handleDeleteScan(scan.id, e)}
-                        className="p-1.5 hover:bg-zinc-700 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                        className="p-1.5 hover:bg-[var(--bg-elevated)] rounded-lg opacity-0 group-hover:opacity-100 transition-all"
                       >
-                        <Trash2 className="w-3.5 h-3.5 text-zinc-400" />
+                        <Trash2 className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
                       </motion.button>
                     </div>
-                    <div className="flex items-center justify-between text-xs text-zinc-500">
+                    <div className="flex items-center justify-between text-xs text-[var(--text-secondary)]">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         {formatDate(scan.created_at)}
@@ -429,7 +429,7 @@ export default function Home() {
           <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl" />
         </div>
         
-        <header className="relative border-b border-zinc-800/50 bg-zinc-900/80 backdrop-blur-xl sticky top-0 z-10">
+        <header className="relative border-b border-[var(--border-default)] bg-[var(--bg-secondary)] backdrop-blur-xl sticky top-0 z-10">
           {/* Header gradient line */}
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
           
@@ -440,14 +440,14 @@ export default function Home() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setSidebarOpen(true)}
-                  className="p-2 hover:bg-zinc-800 rounded-xl mr-1"
+                  className="p-2 hover:bg-[var(--bg-tertiary)] rounded-xl mr-1"
                 >
-                  <History className="w-5 h-5 text-zinc-400" />
+                  <History className="w-5 h-5 text-[var(--text-secondary)]" />
                 </motion.button>
               )}
               <div className="relative">
                 <div className="absolute inset-0 bg-emerald-500/20 rounded-xl blur-xl" />
-                <div className="relative p-2 bg-zinc-800/80 rounded-xl">
+                <div className="relative p-2 bg-[var(--bg-tertiary)] rounded-xl">
                   <Shield className="w-7 h-7 text-emerald-500" />
                 </div>
               </div>
@@ -455,7 +455,7 @@ export default function Home() {
                 <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-zinc-100 to-zinc-400 bg-clip-text text-transparent">
                   CodeSentinel
                 </span>
-                <p className="text-xs text-zinc-500 -mt-0.5">Security Scanner</p>
+                <p className="text-xs text-[var(--text-secondary)] -mt-0.5">Security Scanner</p>
               </div>
             </div>
             <div className="flex items-center gap-4 text-sm">
@@ -463,7 +463,7 @@ export default function Home() {
               <motion.div 
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800/80 rounded-full"
+                className="flex items-center gap-2 px-3 py-1.5 bg-[var(--bg-tertiary)] rounded-full"
               >
                 <span className={`relative flex h-2 w-2`}>
                   <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
@@ -502,15 +502,6 @@ export default function Home() {
                 >
                   <Moon className="w-4 h-4" />
                 </button>
-                <button
-                  className="theme-toggle-btn"
-                  data-theme="system"
-                  role="radio"
-                  aria-checked="false"
-                  aria-label="System theme"
-                >
-                  <Monitor className="w-4 h-4" />
-                </button>
               </div>
             </div>
           </div>
@@ -540,7 +531,7 @@ export default function Home() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.1 }}
-                    className="text-zinc-400 text-sm mt-1 flex items-center gap-2"
+                    className="text-[var(--text-secondary)] text-sm mt-1 flex items-center gap-2"
                   >
                     <FileCode className="w-4 h-4" />
                     {scanResult.project_name || scanResult.file_name || 'Code Analysis'}
@@ -553,9 +544,9 @@ export default function Home() {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.2 }}
                   onClick={() => { setScanResult(null); setScanStatus(null); }}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl transition-all border border-zinc-700 hover:border-emerald-500/30 group"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-[var(--bg-tertiary)] hover:bg-[var(--bg-elevated)] rounded-xl transition-all border border-[var(--border-default)] hover:border-emerald-500/30 group"
                 >
-                  <Upload className="w-4 h-4 text-zinc-400 group-hover:text-emerald-400 transition-colors" />
+                  <Upload className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-emerald-400 transition-colors" />
                   <span className="font-medium">New Scan</span>
                 </motion.button>
               </div>
@@ -567,7 +558,7 @@ export default function Home() {
                   initial={{ scale: 0.9, opacity: 0, y: 20 }}
                   animate={{ scale: 1, opacity: 1, y: 0 }}
                   transition={{ delay: 0.1, type: "spring", stiffness: 100 }}
-                  className={`relative overflow-hidden bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-2xl p-6 group ${
+                  className={`relative overflow-hidden bg-[var(--bg-secondary)] backdrop-blur-sm border border-[var(--border-default)] rounded-2xl p-6 group ${
                     getRiskColor(scanResult.risk_score).bg.includes('green') ? 'hover:border-green-500/30' :
                     getRiskColor(scanResult.risk_score).bg.includes('yellow') ? 'hover:border-yellow-500/30' :
                     getRiskColor(scanResult.risk_score).bg.includes('orange') ? 'hover:border-orange-500/30' :
@@ -584,7 +575,7 @@ export default function Home() {
 
                   <div className="relative">
                     <div className="flex items-center justify-between mb-6">
-                      <h3 className="font-semibold text-zinc-400 flex items-center gap-2">
+                      <h3 className="font-semibold text-[var(--text-secondary)] flex items-center gap-2">
                         <Fingerprint className="w-5 h-5" />
                         Risk Score
                       </h3>
@@ -611,7 +602,7 @@ export default function Home() {
                       >
                         <CountUpNumber value={scanResult.risk_score ?? 0} />
                       </motion.span>
-                      <span className="text-zinc-500 mb-2 text-lg">/ 100</span>
+                      <span className="text-[var(--text-secondary)] mb-2 text-lg">/ 100</span>
                     </div>
                     
                     {/* Risk level indicator */}
@@ -630,7 +621,7 @@ export default function Home() {
                     </motion.div>
                     
                     {/* Risk bar */}
-                    <div className="mt-5 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                    <div className="mt-5 h-2 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
                       <motion.div 
                         initial={{ width: 0 }}
                         animate={{ width: `${scanResult.risk_score ?? 0}%` }}
@@ -648,13 +639,13 @@ export default function Home() {
                   initial={{ scale: 0.9, opacity: 0, y: 20 }}
                   animate={{ scale: 1, opacity: 1, y: 0 }}
                   transition={{ delay: 0.2, type: "spring", stiffness: 100 }}
-                  className="relative overflow-hidden bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-2xl p-6 group hover:border-zinc-700"
+                  className="relative overflow-hidden bg-[var(--bg-secondary)] backdrop-blur-sm border border-[var(--border-default)] rounded-2xl p-6 group hover:border-[var(--border-strong)]"
                 >
                   <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl" />
                   
                   <div className="relative">
                     <div className="flex items-center justify-between mb-6">
-                      <h3 className="font-semibold text-zinc-400 flex items-center gap-2">
+                      <h3 className="font-semibold text-[var(--text-secondary)] flex items-center gap-2">
                         <Shield className="w-5 h-5" />
                         Vulnerabilities
                       </h3>
@@ -666,11 +657,11 @@ export default function Home() {
                       initial={{ scale: 0.5, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ delay: 0.35, type: "spring" }}
-                      className="text-6xl font-bold text-zinc-100"
+                      className="text-6xl font-bold text-[var(--text-primary)]"
                     >
                       <CountUpNumber value={scanResult.vulnerability_count ?? 0} />
                     </motion.span>
-                    <p className="text-zinc-500 text-sm mt-4 flex items-center gap-2">
+                    <p className="text-[var(--text-secondary)] text-sm mt-4 flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                       Total issues found
                     </p>
@@ -682,12 +673,12 @@ export default function Home() {
                   initial={{ scale: 0.9, opacity: 0, y: 20 }}
                   animate={{ scale: 1, opacity: 1, y: 0 }}
                   transition={{ delay: 0.3, type: "spring", stiffness: 100 }}
-                  className="relative overflow-hidden bg-zinc-900/80 backdrop-blur-sm border border-zinc-800 rounded-2xl p-6 group hover:border-zinc-700"
+                  className="relative overflow-hidden bg-[var(--bg-secondary)] backdrop-blur-sm border border-[var(--border-default)] rounded-2xl p-6 group hover:border-[var(--border-strong)]"
                 >
                   <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl" />
                   
                   <div className="relative">
-                    <h3 className="font-semibold text-zinc-400 mb-4 flex items-center gap-2">
+                    <h3 className="font-semibold text-[var(--text-secondary)] mb-4 flex items-center gap-2">
                       <Activity className="w-5 h-5" />
                       Distribution
                     </h3>
@@ -774,7 +765,7 @@ export default function Home() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.05 * index, duration: 0.3 }}
                         layout
-                        className={`relative group bg-zinc-900/80 backdrop-blur-sm border ${sevColor.border} rounded-2xl overflow-hidden shadow-lg ${sevColor.glow}`}
+                        className={`relative group bg-[var(--bg-secondary)] backdrop-blur-sm border ${sevColor.border} rounded-2xl overflow-hidden shadow-lg ${sevColor.glow}`}
                       >
                         {/* Severity indicator bar */}
                         <div className={`absolute left-0 top-0 bottom-0 w-1 ${sevColor.bg}`} />
@@ -783,7 +774,7 @@ export default function Home() {
                         <div className={`absolute inset-0 ${sevColor.bg} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
                         
                         <div 
-                          className="p-5 cursor-pointer hover:bg-zinc-800/30 transition-all duration-200 pl-6"
+                          className="p-5 cursor-pointer hover:bg-[var(--bg-tertiary)] transition-all duration-200 pl-6"
                           onClick={() => setExpandedVuln(isExpanded ? null : vuln.id)}
                         >
                           <div className="flex items-start justify-between gap-4">
@@ -798,19 +789,19 @@ export default function Home() {
                                 </div>
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold text-lg text-zinc-100 group-hover:text-emerald-400 transition-colors">
+                                <h3 className="font-semibold text-lg text-[var(--text-primary)] group-hover:text-emerald-400 transition-colors">
                                   {vuln.title}
                                 </h3>
-                                <div className="flex items-center gap-3 text-sm text-zinc-500 mt-2 flex-wrap">
-                                  <span className="flex items-center gap-1.5 bg-zinc-800/80 px-2.5 py-1 rounded-md">
+                                <div className="flex items-center gap-3 text-sm text-[var(--text-secondary)] mt-2 flex-wrap">
+                                  <span className="flex items-center gap-1.5 bg-[var(--bg-tertiary)] px-2.5 py-1 rounded-md">
                                     <FileCode className="w-3.5 h-3.5" />
                                     <span className="font-mono text-xs">
                                       {vuln.file_path}:{vuln.line_number}
                                     </span>
                                   </span>
                                   {vuln.tool && (
-                                    <span className="flex items-center gap-1.5 bg-zinc-800/80 px-2.5 py-1 rounded-md">
-                                      <Zap className="w-3.5 h-3.5 text-zinc-400" />
+                                    <span className="flex items-center gap-1.5 bg-[var(--bg-tertiary)] px-2.5 py-1 rounded-md">
+                                      <Zap className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
                                       <span className="text-xs">{vuln.tool}</span>
                                     </span>
                                   )}
@@ -818,7 +809,7 @@ export default function Home() {
                               </div>
                             </div>
                             <motion.button 
-                              className={`p-2 rounded-xl ${isExpanded ? 'bg-zinc-800' : 'bg-zinc-800/50'} hover:bg-zinc-700 transition-colors`}
+                              className={`p-2 rounded-xl ${isExpanded ? 'bg-[var(--bg-tertiary)]' : 'bg-[var(--bg-tertiary)]'} hover:bg-[var(--bg-elevated)] transition-colors`}
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                             >
@@ -827,9 +818,9 @@ export default function Home() {
                                 transition={{ duration: 0.2 }}
                               >
                                 {isExpanded ? (
-                                  <ChevronUp className="w-5 h-5 text-zinc-400" />
+                                  <ChevronUp className="w-5 h-5 text-[var(--text-secondary)]" />
                                 ) : (
-                                  <ChevronDown className="w-5 h-5 text-zinc-400" />
+                                  <ChevronDown className="w-5 h-5 text-[var(--text-secondary)]" />
                                 )}
                               </motion.div>
                             </motion.button>
@@ -843,22 +834,22 @@ export default function Home() {
                               animate={{ height: 'auto', opacity: 1 }}
                               exit={{ height: 0, opacity: 0 }}
                               transition={{ duration: 0.3, ease: "easeInOut" }}
-                              className="border-t border-zinc-800/50"
+                              className="border-t border-[var(--border-subtle)]"
                             >
                               <div className="p-6 space-y-5 pl-6">
                                 {vuln.code_snippet && (
                                   <div>
-                                    <h4 className="text-sm font-semibold text-zinc-400 mb-3 flex items-center gap-2">
+                                    <h4 className="text-sm font-semibold text-[var(--text-secondary)] mb-3 flex items-center gap-2">
                                       <Terminal className="w-4 h-4" />
                                       Code Snippet
                                     </h4>
                                     <div className="relative rounded-xl overflow-hidden">
-                                      <div className="absolute top-0 left-0 right-0 h-8 bg-zinc-800/50 flex items-center gap-1.5 px-3">
+                                      <div className="absolute top-0 left-0 right-0 h-8 bg-[var(--bg-tertiary)] flex items-center gap-1.5 px-3">
                                         <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
                                         <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
                                         <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
                                       </div>
-                                      <pre className="bg-zinc-950/90 p-4 pt-10 rounded-xl overflow-x-auto text-sm font-mono text-zinc-300 leading-relaxed border border-zinc-800/50">
+                                      <pre className="bg-[var(--bg-primary)] p-4 pt-10 rounded-xl overflow-x-auto text-sm font-mono text-[var(--text-primary)] leading-relaxed border border-[var(--border-default)]">
                                         <code>{vuln.code_snippet}</code>
                                       </pre>
                                     </div>
@@ -867,11 +858,11 @@ export default function Home() {
                                 
                                 {vuln.description && (
                                   <div>
-                                    <h4 className="text-sm font-semibold text-zinc-400 mb-2 flex items-center gap-2">
+                                    <h4 className="text-sm font-semibold text-[var(--text-secondary)] mb-2 flex items-center gap-2">
                                       <FileCode className="w-4 h-4" />
                                       Description
                                     </h4>
-                                    <p className="text-zinc-300 leading-relaxed bg-zinc-800/30 p-4 rounded-xl">
+                                    <p className="text-[var(--text-primary)] leading-relaxed bg-[var(--bg-tertiary)] p-4 rounded-xl">
                                       {vuln.description}
                                     </p>
                                   </div>
@@ -883,7 +874,7 @@ export default function Home() {
                                       <CheckCircle className="w-4 h-4" />
                                       Remediation
                                     </h4>
-                                    <p className="text-zinc-300 leading-relaxed bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
+                                    <p className="text-[var(--text-primary)] leading-relaxed bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
                                       {vuln.remediation}
                                     </p>
                                   </div>
@@ -901,7 +892,7 @@ export default function Home() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="relative overflow-hidden bg-zinc-900/80 border border-emerald-500/30 rounded-2xl p-16 text-center"
+                  className="relative overflow-hidden bg-[var(--bg-secondary)] border border-emerald-500/30 rounded-2xl p-16 text-center"
                 >
                   {/* Background effects */}
                   <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent" />
@@ -935,7 +926,7 @@ export default function Home() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 0.4 }}
-                      className="text-zinc-400 max-w-md mx-auto text-lg"
+                      className="text-[var(--text-secondary)] max-w-md mx-auto text-lg"
                     >
                       Your code passed all security checks. Great job keeping your codebase secure!
                     </motion.p>
@@ -947,8 +938,8 @@ export default function Home() {
                       transition={{ delay: 0.5 }}
                       className="flex items-center justify-center gap-4 mt-8"
                     >
-                      {['Bandit', 'Safety', 'NodeJS'].map((tool, i) => (
-                        <span key={tool} className="px-4 py-2 bg-zinc-800/50 rounded-xl text-sm text-zinc-400 border border-zinc-700/50">
+                      {['Bandit', 'Safety', 'Semgrep'].map((tool, i) => (
+                        <span key={tool} className="px-4 py-2 bg-[var(--bg-tertiary)] rounded-xl text-sm text-[var(--text-secondary)] border border-[var(--border-default)]">
                           {tool} ✓
                         </span>
                       ))}
@@ -970,14 +961,14 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   className="text-4xl font-bold mb-4 flex items-center justify-center gap-4"
                 >
-                  <span className="text-zinc-100">Secure Your Code</span>
+                  <span className="text-[var(--text-primary)]">Secure Your Code</span>
                   <span className="text-emerald-500">with AI</span>
                 </motion.h1>
                 <motion.p 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.1 }}
-                  className="text-zinc-400 text-lg max-w-2xl mx-auto"
+                  className="text-[var(--text-secondary)] text-lg max-w-2xl mx-auto"
                 >
                   Upload your codebase and get instant security analysis with AI-powered remediation guidance.
                 </motion.p>
@@ -988,7 +979,7 @@ export default function Home() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="relative overflow-hidden border border-zinc-800 rounded-2xl p-12 text-center bg-zinc-900/60 backdrop-blur-sm"
+                  className="relative overflow-hidden border border-[var(--border-default)] rounded-2xl p-12 text-center bg-[var(--bg-secondary)] backdrop-blur-sm"
                 >
                   {/* Background animation */}
                   <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent" />
@@ -1008,7 +999,7 @@ export default function Home() {
                     <motion.h2 
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="text-xl font-semibold mb-2 text-zinc-100"
+                      className="text-xl font-semibold mb-2 text-[var(--text-primary)]"
                     >
                       Scanning your code...
                     </motion.h2>
@@ -1029,10 +1020,10 @@ export default function Home() {
                                 opacity: isActive ? 1 : 0.5
                               }}
                               className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
-                                isActive ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30' : 'bg-zinc-800'
+                                isActive ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30' : 'bg-[var(--bg-tertiary)]'
                               }`}
                             >
-                              <StageIcon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-zinc-500'}`} />
+                              <StageIcon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-[var(--text-tertiary)]'}`} />
                             </motion.div>
                             {index < scanStages.length - 1 && (
                               <motion.div 
@@ -1046,12 +1037,12 @@ export default function Home() {
                       })}
                     </div>
                     
-                    <p className="text-zinc-400 mt-4">
+                    <p className="text-[var(--text-secondary)] mt-4">
                       {scanStages[currentStage]?.label || 'Processing...'}
                     </p>
                     
                     {selectedFile && (
-                      <p className="text-zinc-500 text-sm mt-2">
+                      <p className="text-[var(--text-tertiary)] text-sm mt-2">
                         {selectedFile.name}
                       </p>
                     )}
@@ -1066,7 +1057,7 @@ export default function Home() {
                   className={`relative group rounded-2xl overflow-hidden transition-all duration-300 ${
                     isDragging
                       ? "scale-[1.02] border-emerald-500/60"
-                      : "border-zinc-800 hover:border-zinc-700"
+                      : "border-[var(--border-default)] hover:border-[var(--border-strong)]"
                   }`}
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
@@ -1077,7 +1068,7 @@ export default function Home() {
                   <div className={`absolute inset-0 rounded-2xl bg-gradient-to-r from-emerald-500/0 via-emerald-500/30 to-emerald-500/0 opacity-0 transition-opacity duration-500 ${
                     isDragging ? "opacity-100" : "group-hover:opacity-60"
                   }`} style={{ padding: '2px' }}>
-                    <div className="absolute inset-0 bg-zinc-900/95 rounded-2xl" />
+                    <div className="absolute inset-0 bg-[var(--bg-primary)] rounded-2xl" />
                   </div>
                   
                   {/* Glow effect */}
@@ -1085,11 +1076,11 @@ export default function Home() {
                     isDragging ? "opacity-100" : "opacity-0 group-hover:opacity-50"
                   }`} />
                   
-                  <div className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 ${
-                    isDragging
-                      ? "bg-emerald-500/10 border-emerald-500/50"
-                      : "bg-zinc-900/60 backdrop-blur-sm border-zinc-800 hover:border-zinc-600"
-                  }`}>
+                    <div className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 ${
+                      isDragging
+                        ? "bg-emerald-500/10 border-emerald-500/50"
+                        : "bg-[var(--bg-secondary)] backdrop-blur-sm border-[var(--border-default)] hover:border-[var(--border-strong)]"
+                    }`}>
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -1114,9 +1105,9 @@ export default function Home() {
                         <div className={`relative p-4 rounded-2xl transition-all duration-300 ${
                           isDragging 
                             ? "bg-emerald-500/20" 
-                            : "bg-zinc-800/50 group-hover:bg-zinc-800"
+                            : "bg-[var(--bg-tertiary)] group-hover:bg-[var(--bg-tertiary)]"
                         }`}>
-                          <Upload className="w-12 h-12 text-zinc-400 group-hover:text-emerald-400 transition-colors" />
+                          <Upload className="w-12 h-12 text-[var(--text-secondary)] group-hover:text-emerald-400 transition-colors" />
                         </div>
                       </div>
                     </motion.div>
@@ -1125,11 +1116,11 @@ export default function Home() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.1 }}
-                      className="text-lg font-semibold mb-2 text-zinc-200"
+                      className="text-lg font-semibold mb-2 text-[var(--text-primary)]"
                     >
                       {isDragging ? "Drop your file here" : "Drag & drop your code zip file here"}
                     </motion.p>
-                    <p className="text-zinc-500 text-sm mb-6">
+                    <p className="text-[var(--text-secondary)] text-sm mb-6">
                       or click to browse • Max 50MB • .zip files only
                     </p>
                     <motion.button 
@@ -1178,15 +1169,15 @@ export default function Home() {
               >
                 <motion.div 
                   whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                  className="group relative bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 hover:border-emerald-500/30 transition-all duration-300"
+                  className="group relative bg-[var(--bg-secondary)] border border-[var(--border-default)] rounded-2xl p-6 hover:border-emerald-500/30 transition-all duration-300"
                 >
                   <div className="absolute -top-10 -right-10 w-20 h-20 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all" />
                   <div className="relative">
                     <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-emerald-500/20 transition-colors">
                       <Shield className="w-6 h-6 text-emerald-500" />
                     </div>
-                    <h3 className="font-semibold mb-2 text-zinc-100">Security Scanning</h3>
-                    <p className="text-zinc-500 text-sm leading-relaxed">
+                    <h3 className="font-semibold mb-2 text-[var(--text-primary)]">Security Scanning</h3>
+                    <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
                       Bandit & Safety scan your Python code for vulnerabilities
                     </p>
                   </div>
@@ -1194,15 +1185,15 @@ export default function Home() {
                 
                 <motion.div 
                   whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                  className="group relative bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 hover:border-blue-500/30 transition-all duration-300"
+                  className="group relative bg-[var(--bg-secondary)] border border-[var(--border-default)] rounded-2xl p-6 hover:border-blue-500/30 transition-all duration-300"
                 >
                   <div className="absolute -top-10 -right-10 w-20 h-20 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all" />
                   <div className="relative">
                     <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-500/20 transition-colors">
                       <Activity className="w-6 h-6 text-blue-500" />
                     </div>
-                    <h3 className="font-semibold mb-2 text-zinc-100">AI Remediation</h3>
-                    <p className="text-zinc-500 text-sm leading-relaxed">
+                    <h3 className="font-semibold mb-2 text-[var(--text-primary)]">AI Remediation</h3>
+                    <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
                       Get intelligent fix suggestions powered by Groq AI
                     </p>
                   </div>
@@ -1210,15 +1201,15 @@ export default function Home() {
                 
                 <motion.div 
                   whileHover={{ y: -5, transition: { duration: 0.2 } }}
-                  className="group relative bg-zinc-900/60 border border-zinc-800 rounded-2xl p-6 hover:border-purple-500/30 transition-all duration-300"
+                  className="group relative bg-[var(--bg-secondary)] border border-[var(--border-default)] rounded-2xl p-6 hover:border-purple-500/30 transition-all duration-300"
                 >
                   <div className="absolute -top-10 -right-10 w-20 h-20 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-all" />
                   <div className="relative">
                     <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-purple-500/20 transition-colors">
                       <Clock className="w-6 h-6 text-purple-500" />
                     </div>
-                    <h3 className="font-semibold mb-2 text-zinc-100">Scan History</h3>
-                    <p className="text-zinc-500 text-sm leading-relaxed">
+                    <h3 className="font-semibold mb-2 text-[var(--text-primary)]">Scan History</h3>
+                    <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
                       Track your security progress over time
                     </p>
                   </div>
