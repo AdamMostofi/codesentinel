@@ -5,6 +5,7 @@ from app.database import get_db, engine, Base
 from app.models.scan import Scan, Vulnerability
 from app.services.file_handler import FileHandler
 from app.services.scanner import SecurityScanner
+from app.services.llm import LLMService
 from app.core.config import settings
 import uuid
 import traceback
@@ -54,7 +55,34 @@ async def create_scan(file: UploadFile = File(...), db: Session = Depends(get_db
             scanner = SecurityScanner(result["extract_dir"])
             scan_results = scanner.scan()
 
+            llm_service = LLMService()
+            llm_available = llm_service.is_available()
+
             for vuln in scan_results["vulnerabilities"]:
+                remediation_data = {"remediation": "", "old_code": "", "new_code": "", "explanation": ""}
+                llm_used = False
+
+                if llm_available:
+                    import time
+                    remediation_data = llm_service.generate_remediation(vuln)
+                    time.sleep(0.5)
+                    llm_used = True
+
+                # Check if LLM returned valid remediation, if not use fallback
+                if not remediation_data.get("remediation"):
+                    logger.warning(f"FALLBACK MODE: LLM failed for '{vuln.get('title')}', using scanner data")
+                    fallback_remediation = f"[REVIEW REQUIRED] {vuln.get('description', 'No description available')}"
+                    fallback_explanation = f"FALLBACK: LLM did not return valid response. Scanner found: {vuln.get('title', 'Unknown vulnerability')}"
+                    remediation_data = {
+                        "remediation": fallback_remediation,
+                        "old_code": vuln.get("code_snippet", ""),
+                        "new_code": "# TODO: Implement secure version\n# Review the vulnerability and apply fix",
+                        "explanation": fallback_explanation
+                    }
+                    llm_used = False
+
+                logger.info(f"Storing vulnerability '{vuln.get('title')}' - LLM used: {llm_used}")
+
                 vulnerability = Vulnerability(
                     id=str(uuid.uuid4()),
                     scan_id=scan_id,
@@ -65,7 +93,10 @@ async def create_scan(file: UploadFile = File(...), db: Session = Depends(get_db
                     file_path=vuln.get("file_path", ""),
                     line_number=vuln.get("line_number", 0),
                     code_snippet=vuln.get("code_snippet", ""),
-                    remediation=vuln.get("remediation", ""),
+                    remediation=remediation_data.get("remediation", ""),
+                    explanation=remediation_data.get("explanation", ""),
+                    old_code=remediation_data.get("old_code", ""),
+                    new_code=remediation_data.get("new_code", ""),
                     raw_output=vuln.get("raw_output", ""),
                 )
                 db.add(vulnerability)
@@ -163,6 +194,9 @@ async def get_scan(scan_id: str, db: Session = Depends(get_db)):
                 "line_number": v.line_number,
                 "code_snippet": v.code_snippet,
                 "remediation": v.remediation,
+                "explanation": v.explanation,
+                "old_code": v.old_code,
+                "new_code": v.new_code,
             }
             for v in vulns
         ],

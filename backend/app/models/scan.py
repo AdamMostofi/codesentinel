@@ -32,5 +32,8 @@ class Vulnerability(Base):
     line_number = Column(Integer, nullable=True)
     code_snippet = Column(Text, nullable=True)
     remediation = Column(Text, nullable=True)
+    explanation = Column(Text, nullable=True)
+    old_code = Column(Text, nullable=True)
+    new_code = Column(Text, nullable=True)
     raw_output = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
