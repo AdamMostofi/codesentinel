@@ -5,7 +5,7 @@ import {
   Shield, Upload, Activity, Clock, AlertTriangle, CheckCircle, 
   XCircle, Loader2, ChevronDown, ChevronUp, FileCode, History,
   Trash2, RefreshCw, ArrowLeft, BarChart3, AlertOctagon, Sun, Moon,
-  Fingerprint, Zap, Search, Terminal
+  Fingerprint, Zap, Search, Terminal, Copy, Sparkles
 } from "lucide-react";
 import { motion, AnimatePresence, useSpring, useTransform } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
@@ -755,7 +755,7 @@ export default function Home() {
                     Vulnerability Details
                   </h2>
                   {scanResult.vulnerabilities.map((vuln, index) => {
-                    const isExpanded = expandedVuln === vuln.id;
+                    const isExpanded = expandedVuln === index;
                     const sevColor = getSeverityColor(vuln.severity);
                     
                     return (
@@ -771,11 +771,10 @@ export default function Home() {
                         <div className={`absolute left-0 top-0 bottom-0 w-1 ${sevColor.bg}`} />
                         
                         {/* Glow effect on hover */}
-                        <div className={`absolute inset-0 ${sevColor.bg} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
+                        <div className={`absolute inset-0 ${sevColor.bg} opacity-0 group-hover:opacity-5 transition-opacity duration-300 pointer-events-none`} />
                         
                         <div 
                           className="p-5 cursor-pointer hover:bg-[var(--bg-tertiary)] transition-all duration-200 pl-6"
-                          onClick={() => setExpandedVuln(isExpanded ? null : vuln.id)}
                         >
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex items-start gap-4 flex-1">
@@ -809,9 +808,13 @@ export default function Home() {
                               </div>
                             </div>
                             <motion.button 
-                              className={`p-2 rounded-xl ${isExpanded ? 'bg-[var(--bg-tertiary)]' : 'bg-[var(--bg-tertiary)]'} hover:bg-[var(--bg-elevated)] transition-colors`}
+                              className={`p-2 rounded-xl ${isExpanded ? 'bg-[var(--bg-tertiary)]' : 'bg-[var(--bg-tertiary)]'} hover:bg-[var(--bg-elevated)] transition-colors cursor-pointer`}
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setExpandedVuln(isExpanded ? null : index);
+                              }}
                             >
                               <motion.div
                                 animate={{ rotate: isExpanded ? 180 : 0 }}
@@ -837,11 +840,95 @@ export default function Home() {
                               className="border-t border-[var(--border-subtle)]"
                             >
                               <div className="p-6 space-y-5 pl-6">
+                                {vuln.remediation && (
+                                  <div>
+                                    <h4 className="text-sm font-semibold text-emerald-400 mb-2 flex items-center gap-2">
+                                      <Sparkles className="w-4 h-4" />
+                                      AI Remediation
+                                    </h4>
+                                    <p className="text-[var(--text-primary)] leading-relaxed bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
+                                      {vuln.remediation}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {vuln.explanation && (
+                                  <div>
+                                    <h4 className="text-sm font-semibold text-blue-400 mb-2 flex items-center gap-2">
+                                      <FileCode className="w-4 h-4" />
+                                      Technical Explanation
+                                    </h4>
+                                    <p className="text-[var(--text-primary)] leading-relaxed bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl">
+                                      {vuln.explanation}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {(vuln.old_code || vuln.new_code) && (
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {vuln.old_code && (
+                                      <div className="relative">
+                                        <div className="flex items-center justify-between mb-2">
+                                          <h4 className="text-sm font-semibold text-red-400 flex items-center gap-2">
+                                            <AlertTriangle className="w-4 h-4" />
+                                            Vulnerable Code
+                                          </h4>
+                                          <button
+                                            onClick={() => navigator.clipboard.writeText(vuln.old_code)}
+                                            className="p-1.5 hover:bg-[var(--bg-tertiary)] rounded-lg transition-colors"
+                                            title="Copy code"
+                                          >
+                                            <Copy className="w-4 h-4 text-[var(--text-secondary)]" />
+                                          </button>
+                                        </div>
+                                        <div className="relative rounded-xl overflow-hidden border border-red-500/30">
+                                          <div className="absolute top-0 left-0 right-0 h-8 bg-red-500/10 flex items-center gap-1.5 px-3">
+                                            <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
+                                            <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+                                            <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
+                                          </div>
+                                          <pre className="bg-[var(--bg-primary)] p-4 pt-10 rounded-xl overflow-x-auto text-sm font-mono text-red-300 leading-relaxed">
+                                            <code>{vuln.old_code}</code>
+                                          </pre>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    {vuln.new_code && (
+                                      <div className="relative">
+                                        <div className="flex items-center justify-between mb-2">
+                                          <h4 className="text-sm font-semibold text-emerald-400 flex items-center gap-2">
+                                            <CheckCircle className="w-4 h-4" />
+                                            Fixed Code
+                                          </h4>
+                                          <button
+                                            onClick={() => navigator.clipboard.writeText(vuln.new_code)}
+                                            className="p-1.5 hover:bg-[var(--bg-tertiary)] rounded-lg transition-colors"
+                                            title="Copy code"
+                                          >
+                                            <Copy className="w-4 h-4 text-[var(--text-secondary)]" />
+                                          </button>
+                                        </div>
+                                        <div className="relative rounded-xl overflow-hidden border border-emerald-500/30">
+                                          <div className="absolute top-0 left-0 right-0 h-8 bg-emerald-500/10 flex items-center gap-1.5 px-3">
+                                            <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
+                                            <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+                                            <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
+                                          </div>
+                                          <pre className="bg-[var(--bg-primary)] p-4 pt-10 rounded-xl overflow-x-auto text-sm font-mono text-emerald-300 leading-relaxed">
+                                            <code>{vuln.new_code}</code>
+                                          </pre>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+
                                 {vuln.code_snippet && (
                                   <div>
                                     <h4 className="text-sm font-semibold text-[var(--text-secondary)] mb-3 flex items-center gap-2">
                                       <Terminal className="w-4 h-4" />
-                                      Code Snippet
+                                      Original Code Snippet
                                     </h4>
                                     <div className="relative rounded-xl overflow-hidden">
                                       <div className="absolute top-0 left-0 right-0 h-8 bg-[var(--bg-tertiary)] flex items-center gap-1.5 px-3">
@@ -864,18 +951,6 @@ export default function Home() {
                                     </h4>
                                     <p className="text-[var(--text-primary)] leading-relaxed bg-[var(--bg-tertiary)] p-4 rounded-xl">
                                       {vuln.description}
-                                    </p>
-                                  </div>
-                                )}
-                                
-                                {vuln.remediation && (
-                                  <div>
-                                    <h4 className="text-sm font-semibold text-emerald-400 mb-2 flex items-center gap-2">
-                                      <CheckCircle className="w-4 h-4" />
-                                      Remediation
-                                    </h4>
-                                    <p className="text-[var(--text-primary)] leading-relaxed bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl">
-                                      {vuln.remediation}
                                     </p>
                                   </div>
                                 )}
