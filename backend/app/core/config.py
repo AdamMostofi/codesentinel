@@ -11,6 +11,7 @@ class Settings:
     DATABASE_URL: str = f"sqlite:///{BASE_DIR}/codesentinel.db"
 
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.1-70b-versatile")
 
     TEMP_UPLOAD_DIR: str = str(BASE_DIR / "uploads")
 
