@@ -14,7 +14,7 @@ An AI-powered security vulnerability scanner for Python codebases that combines 
 - **Scan History** - Track and review past scans with local SQLite storage
 - **Modern UI** - Dark/light theme with real-time progress indicators
 - **ZIP File Upload** - Easy project submission via drag-and-drop upload
-- **AI Remediation Ready** - Optional Groq API integration for intelligent fix suggestions
+- **AI Remediation** - Optional Groq API integration for intelligent fix suggestions
 
 ## Tech Stack
 
