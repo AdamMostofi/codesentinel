@@ -14,7 +14,7 @@ An AI-powered security vulnerability scanner for Python codebases that combines 
 - **Scan History** - Track and review past scans with local SQLite storage
 - **Modern UI** - Dark/light theme with real-time progress indicators
 - **ZIP File Upload** - Easy project submission via drag-and-drop upload
-- **AI Remediation** - Optional Groq API integration for intelligent fix suggestions
+- **AI Remediation** - Groq API integration for intelligent fix suggestions with vulnerable vs fixed code comparison
 
 ## Tech Stack
 
@@ -36,65 +36,140 @@ An AI-powered security vulnerability scanner for Python codebases that combines 
 | Bandit | 1.7.8 | Python SAST security linter |
 | Safety | 3.2.0 | Python dependency security checker |
 | Semgrep | 1.77.0 | Community Edition static analysis |
-| Groq SDK | 0.4.2 | LLM integration (optional) |
+| Groq SDK | 1.2.0 | LLM integration (optional) |
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+
-- Python 3.12+
-- pip (Python package manager)
+| Platform | Requirements | Install Command |
+|----------|-------------|-----------------|
+| **Linux** | Python 3.12+, Node.js 18+, pip | `sudo apt install python3 python3-pip nodejs` |
+| **macOS** | Python 3.12+, Node.js 18+, pip | `brew install python node` |
+| **Windows** | Python 3.12+, Node.js 18+, pip | Download from [python.org](https://python.org) / [nodejs.org](https://nodejs.org) |
+| **WSL** | Python 3.12+, Node.js 18+, pip | `sudo apt install python3 python3-pip nodejs` |
 
 ### Installation
 
-**1. Clone the repository**
-```bash
-git clone https://github.com/AdamMostofi/codesentinel.git
-cd codesentinel
-```
+<details>
+<summary><b>Linux / macOS / WSL</b></summary>
 
-**2. Set up the backend**
 ```bash
+# Backend setup
 cd backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 
-# Copy environment template
+# Copy environment template and add your Groq API key
 cp .env.example .env
-# Edit .env and add your Groq API key (optional, for AI remediation)
-```
+# Edit .env to add GROQ_API_KEY (optional, for AI remediation)
 
-**3. Set up the frontend**
-```bash
-cd frontend
+# Frontend setup
+cd ../frontend
 npm install
 ```
+</details>
+
+<details>
+<summary><b>Windows (PowerShell)</b></summary>
+
+```powershell
+# Backend setup
+cd backend
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+
+# Copy environment template and add your Groq API key
+copy .env.example .env
+# Edit .env to add GROQ_API_KEY (optional, for AI remediation)
+
+# Frontend setup
+cd ../frontend
+npm install
+```
+</details>
+
+<details>
+<summary><b>Windows (cmd.exe)</b></summary>
+
+```cmd
+:: Backend setup
+cd backend
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+
+:: Copy environment template and add your Groq API key
+copy .env.example .env
+
+:: Frontend setup
+cd ../frontend
+npm install
+```
+</details>
 
 ### Running the Application
 
-**Start the backend** (runs on http://localhost:8000)
+<div style="padding-left: 1em; border-left: 3px solid #3b82f6;">
+<p><strong>First time?</strong> Delete the database to start fresh: <code>rm backend/app/codesentinel.db</code> (or <code>del backend\app\codesentinel.db</code> on Windows cmd)</p>
+</div>
+
+<details>
+<summary><b>Linux / macOS / WSL</b></summary>
+
 ```bash
+# Terminal 1 — Start backend (runs on http://localhost:8000)
 cd backend
 source venv/bin/activate
 python -m app.main
-```
 
-**Start the frontend** (runs on http://localhost:3000)
-```bash
+# Terminal 2 — Start frontend (runs on http://localhost:3000)
 cd frontend
 npm run dev
 ```
+</details>
+
+<details>
+<summary><b>Windows (PowerShell)</b></summary>
+
+```powershell
+# Terminal 1 — Start backend (runs on http://localhost:8000)
+cd backend
+.\venv\Scripts\Activate.ps1
+python -m app.main
+
+# Terminal 2 — Start frontend (runs on http://localhost:3000)
+cd frontend
+npm run dev
+```
+</details>
+
+<details>
+<summary><b>Windows (cmd.exe)</b></summary>
+
+```cmd
+:: Terminal 1 — Start backend (runs on http://localhost:8000)
+cd backend
+venv\Scripts\activate
+python -m app.main
+
+:: Terminal 2 — Start frontend (runs on http://localhost:3000)
+cd frontend
+npm run dev
+```
+</details>
 
 **Open in browser**
-Navigate to http://localhost:3000
+Navigate to [http://localhost:3000](http://localhost:3000)
 
 ### Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `GROQ_API_KEY` | No | Free API key from [console.groq.com](https://console.groq.com) for AI-powered remediation suggestions |
+| `GROQ_API_KEY` | No | Free API key from [console.groq.com](https://console.groq.com) — enables AI-powered remediation with old/new code comparison |
+| `GROQ_MODEL` | No | LLM model name (default: `llama-3.3-70b-versatile`)
 
 ## Usage
 
@@ -118,6 +193,7 @@ codesentinel/
 │   │   ├── models/scan.py         # SQLAlchemy models
 │   │   └── services/
 │   │       ├── file_handler.py    # ZIP upload handling
+│   │       ├── llm.py             # Groq LLM integration
 │   │       └── scanner.py         # Security scanning logic
 │   ├── .env.example
 │   ├── codesentinel.db            # SQLite database
@@ -168,7 +244,10 @@ codesentinel/
       "file_path": "app/db.py",
       "line_number": 42,
       "code_snippet": "cursor.execute('SELECT * FROM users WHERE id = ' + user_id)",
-      "remediation": "Use parameterized queries instead..."
+      "remediation": "This is an SQL injection vulnerability caused by string concatenation in the query. An attacker can inject malicious SQL through the user_id parameter. Use parameterized queries with placeholders to safely separate code from data.",
+      "explanation": "Parameterized queries prevent injection by treating user input as data, not executable SQL code.",
+      "old_code": "cursor.execute('SELECT * FROM users WHERE id = ' + user_id)",
+      "new_code": "cursor.execute('SELECT * FROM users WHERE id = ?', (user_id,))"
     }
   ]
 }
