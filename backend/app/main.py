@@ -4,7 +4,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import routes
-from app.core.config import settings
+from app.core.config import settings, validate_config
 from app.database import engine, Base
 
 # Setup logging
@@ -25,6 +25,10 @@ logger = logging.getLogger(__name__)
 # Create database tables on startup
 Base.metadata.create_all(bind=engine)
 logger.info("Database tables initialized")
+
+# Validate configuration and log warnings
+for warning in validate_config():
+    logger.warning(warning)
 
 app = FastAPI(
     title="CodeSentinel API",
