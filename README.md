@@ -6,6 +6,7 @@ An AI-powered security vulnerability scanner for Python codebases that combines 
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109.0-orange?logo=fastapi)](https://fastapi.tiangolo.com/)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.12+-green?logo=python)](https://python.org/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)](https://docker.com/)
 
 ## Features
 
@@ -40,129 +41,70 @@ An AI-powered security vulnerability scanner for Python codebases that combines 
 
 ## Getting Started
 
-### Prerequisites
+### Quick Start with Docker
 
-| Platform | Requirements | Install Command |
-|----------|-------------|-----------------|
-| **Linux** | Python 3.12+, Node.js 18+, pip | `sudo apt install python3 python3-pip nodejs` |
-| **macOS** | Python 3.12+, Node.js 18+, pip | `brew install python node` |
-| **Windows** | Python 3.12+, Node.js 18+, pip | Download from [python.org](https://python.org) / [nodejs.org](https://nodejs.org) |
-| **WSL** | Python 3.12+, Node.js 18+, pip | `sudo apt install python3 python3-pip nodejs` |
+The fastest way to run CodeSentinel — no manual dependency installation required.
 
-### Installation
+#### Prerequisites
 
-<details>
-<summary><b>Linux / macOS / WSL</b></summary>
+- [Docker Engine](https://docs.docker.com/engine/install/) (version 24+)
+- [Docker Compose](https://docs.docker.com/compose/install/) (usually included with Docker Desktop)
+
+#### Setup
 
 ```bash
-# Backend setup
-cd backend
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+# 1. Clone the repository
+git clone https://github.com/your-username/CodeSentinel.git
+cd CodeSentinel
 
-# Copy environment template and add your Groq API key
+# 2. Copy the environment template and add your Groq API key
 cp .env.example .env
-# Edit .env to add GROQ_API_KEY (optional, for AI remediation)
+# Edit .env: set GROQ_API_KEY (get a free key at https://console.groq.com/keys)
+# Optionally change GROQ_MODEL to a different available model
 
-# Frontend setup
-cd ../frontend
-npm install
+# 3. Build and start the containers
+docker-compose up --build
 ```
-</details>
 
-<details>
-<summary><b>Windows (PowerShell)</b></summary>
+Once running, access:
 
-```powershell
-# Backend setup
-cd backend
-python -m venv venv
-.\venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+- **Frontend**: [http://localhost:3000](http://localhost:3000)
+- **Backend API**: [http://localhost:8000](http://localhost:8000)
 
-# Copy environment template and add your Groq API key
-copy .env.example .env
-# Edit .env to add GROQ_API_KEY (optional, for AI remediation)
+#### Updating Configuration
 
-# Frontend setup
-cd ../frontend
-npm install
-```
-</details>
+To change your API key or Groq model:
 
-<details>
-<summary><b>Windows (cmd.exe)</b></summary>
+1. Edit the `.env` file:
+   ```env
+   GROQ_API_KEY=new_key_here
+   GROQ_MODEL=llama-3.3-70b-versatile
+   ```
+2. Restart the backend container:
+   ```bash
+   docker-compose restart backend
+   ```
+   No rebuild needed — environment variables are read at runtime.
 
-```cmd
-:: Backend setup
-cd backend
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-
-:: Copy environment template and add your Groq API key
-copy .env.example .env
-
-:: Frontend setup
-cd ../frontend
-npm install
-```
-</details>
-
-### Running the Application
-
-<div style="padding-left: 1em; border-left: 3px solid #3b82f6;">
-<p><strong>First time?</strong> Delete the database to start fresh: <code>rm backend/app/codesentinel.db</code> (or <code>del backend\app\codesentinel.db</code> on Windows cmd)</p>
-</div>
-
-<details>
-<summary><b>Linux / macOS / WSL</b></summary>
+#### Stopping the Application
 
 ```bash
-# Terminal 1 — Start backend (runs on http://localhost:8000)
-cd backend
-source venv/bin/activate
-python -m app.main
+# Stop containers (keeps data)
+docker-compose stop
 
-# Terminal 2 — Start frontend (runs on http://localhost:3000)
-cd frontend
-npm run dev
+# Stop and remove containers
+docker-compose down
 ```
-</details>
 
-<details>
-<summary><b>Windows (PowerShell)</b></summary>
+#### Using Different Ports
 
-```powershell
-# Terminal 1 — Start backend (runs on http://localhost:8000)
-cd backend
-.\venv\Scripts\Activate.ps1
-python -m app.main
+Edit the port mappings in `docker-compose.yml`:
 
-# Terminal 2 — Start frontend (runs on http://localhost:3000)
-cd frontend
-npm run dev
+```yaml
+ports:
+  - "8080:8000"   # Backend on host port 8080
+  - "3001:3000"   # Frontend on host port 3001
 ```
-</details>
-
-<details>
-<summary><b>Windows (cmd.exe)</b></summary>
-
-```cmd
-:: Terminal 1 — Start backend (runs on http://localhost:8000)
-cd backend
-venv\Scripts\activate
-python -m app.main
-
-:: Terminal 2 — Start frontend (runs on http://localhost:3000)
-cd frontend
-npm run dev
-```
-</details>
-
-**Open in browser**
-Navigate to [http://localhost:3000](http://localhost:3000)
 
 ### Environment Variables
 
