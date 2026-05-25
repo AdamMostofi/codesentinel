@@ -106,6 +106,58 @@ ports:
   - "3001:3000"   # Frontend on host port 3001
 ```
 
+### Updating CodeSentinel
+
+To update to the latest version:
+
+```bash
+# 1. Pull the latest code from GitHub
+git pull origin master
+
+# 2. Check if Dockerfiles changed
+git diff --name-only HEAD@{1} HEAD -- backend/Dockerfile frontend/Dockerfile docker-compose.yml
+
+# 3. If Dockerfiles changed, rebuild and restart:
+docker-compose up --build --detach
+
+# If only application code changed (no Dockerfile edits):
+docker-compose up --detach
+```
+
+Your `.env` file (API key, model) is preserved across updates — no reconfiguration needed.
+
+#### Viewing Logs
+
+```bash
+# All services
+docker-compose logs -f
+
+# Only backend
+docker-compose logs -f backend
+
+# Only frontend
+docker-compose logs -f frontend
+```
+
+#### Container Management
+
+```bash
+# Restart a single service
+docker-compose restart backend
+
+# Check running containers
+docker-compose ps
+
+# Stop all containers
+docker-compose stop
+
+# Stop and remove containers and networks
+docker-compose down
+
+# Remove everything (containers, images, volumes)
+docker-compose down --rmi all -v
+```
+
 ### Environment Variables
 
 | Variable | Required | Description |
